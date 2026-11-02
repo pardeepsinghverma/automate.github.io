@@ -1,6 +1,27 @@
 {
   "version": "2.6.0",
   "build": 260,
+  "release_date": "2026-11-03",
   "url": "https://raw.githubusercontent.com/pardeepsinghverma/automate.github.io/main/firmware.bin",
-  "release_notes": "Added Auto Morning Water Schedule, 60m Dry-run cutoff, and GitHub Over-The-Air updates."
+  "release_notes": "Autonomous Over-The-Air GitHub firmware updates, Morning water schedule timer, 60m safety lock, and multilingual dashboard.",
+  "changelog": [
+    {
+      "version": "2.6.0",
+      "build": 260,
+      "date": "2026-11-03",
+      "notes": "Added autonomous Over-The-Air (OTA) updates from GitHub Pages and remote 1-click fleet trigger without physical buttons."
+    },
+    {
+      "version": "2.5.0",
+      "build": 250,
+      "date": "2026-11-02",
+      "notes": "Direct Hardware Touch ISR (<1us latency) at 160MHz overclock with safe Hi-Z relay driver."
+    },
+    {
+      "version": "2.1.0",
+      "build": 210,
+      "date": "2026-11-01",
+      "notes": "Commercial 50-year zero-cloud architecture with decentralized HiveMQ MQTT and local HTTP portal."
+    }
+  ]
 }
