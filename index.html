@@ -2199,6 +2199,17 @@
         if (fwBadge) fwBadge.innerText = data.fw;
       }
 
+      const otaStatus = document.getElementById(`otaStatusText-${devId}`);
+      if (otaStatus && cloudReleaseInfo) {
+        if (data.build && cloudReleaseInfo.build > data.build) {
+          otaStatus.innerText = `New: v${cloudReleaseInfo.version}`;
+          otaStatus.className = "text-[9px] text-amber-400 font-semibold animate-pulse";
+        } else {
+          otaStatus.innerText = t("ota_uptodate");
+          otaStatus.className = "text-[9px] text-emerald-400 font-medium";
+        }
+      }
+
       const footer = document.getElementById(`footerInfo-${devId}`);
       if (footer) {
         const runSec = data.runTime || 0;

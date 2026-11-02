@@ -1,10 +1,16 @@
 {
-  "version": "2.7.1",
-  "build": 271,
+  "version": "2.7.2",
+  "build": 272,
   "release_date": "2026-11-03",
   "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
-  "release_notes": "Wireless Over-The-Air GitHub fleet verification update with 16KB BearSSL buffer and automatic socket cleanup.",
+  "release_notes": "Live fleet test update: Enhanced BearSSL TLS handshake buffer, flushed MQTT telemetry alerts, and live OTA progress synchronization.",
   "changelog": [
+    {
+      "version": "2.7.2",
+      "build": 272,
+      "date": "2026-11-03",
+      "notes": "Live fleet update test: Enhanced TLS handshake headroom and instant state sync."
+    },
     {
       "version": "2.7.1",
       "build": 271,
