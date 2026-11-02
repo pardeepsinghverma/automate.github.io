@@ -1,10 +1,16 @@
 {
-  "version": "2.7.3",
-  "build": 273,
+  "version": "2.7.5",
+  "build": 275,
   "release_date": "2026-11-03",
   "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
-  "release_notes": "Reliability stress test: Fully verified zero-touch OTA fleet update with memory-scoped TLS stack and direct URL streaming.",
+  "release_notes": "Commercial Release v2.7.5: Zero-touch Over-The-Air fleet update with direct URL memory-safe streaming, EEPROM wear-leveled history logging, and instant hardware touch ISR.",
   "changelog": [
+    {
+      "version": "2.7.5",
+      "build": 275,
+      "date": "2026-11-03",
+      "notes": "Customer manual update verification release: Fully verified zero-touch OTA updates with direct streaming."
+    },
     {
       "version": "2.7.3",
       "build": 273,
