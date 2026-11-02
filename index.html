@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>SmartTank Pro | Mobile IoT Controller</title>
+  <title>SmartTank Pro | Simple Mobile Water Controller</title>
   <meta name="theme-color" content="#070b14">
   <meta name="description" content="Commercial IoT Water Tank Automation - Sub-30ms Real-Time Mobile Controller">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -87,30 +87,35 @@
         </div>
       </div>
 
-      <!-- Action Buttons + Language Switcher -->
+      <!-- Action Buttons (Language, Help Guide, Sound, Add, QR) -->
       <div class="flex items-center space-x-1.5">
         <!-- Language Selector Pill -->
         <button onclick="openModal('modalLanguage')"
-          class="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-slate-800/80 active:bg-slate-700 text-slate-200 border border-slate-700/80 text-xs font-bold transition shadow-sm"
+          class="flex items-center space-x-1 px-2 py-1.5 rounded-xl bg-slate-800/80 active:bg-slate-700 text-slate-200 border border-slate-700/80 text-xs font-bold transition shadow-sm"
           title="Change Language">
           <i data-lucide="globe" class="w-3.5 h-3.5 text-sky-400"></i>
           <span id="currentLangLabel">English</span>
         </button>
 
+        <!-- Elderly Friendly Help / Guide Button -->
+        <button onclick="openWelcomeJourney(0)"
+          class="p-2 rounded-xl bg-sky-500/10 active:bg-sky-500/20 text-sky-400 border border-sky-500/20 transition"
+          title="User Guide">
+          <i data-lucide="help-circle" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Sound Toggle -->
         <button id="btnSound" onclick="toggleSound()"
           class="p-2 rounded-xl bg-slate-800/80 active:bg-slate-700 text-slate-300 hover:text-white transition"
           title="Toggle Sound">
           <i data-lucide="volume-2" class="w-4 h-4" id="iconSound"></i>
         </button>
+
+        <!-- Add Device -->
         <button onclick="openModal('modalAddDevice')"
           class="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-sky-600 active:bg-sky-500 text-white font-bold text-xs transition shadow-md shadow-sky-600/30">
           <i data-lucide="plus" class="w-3.5 h-3.5"></i>
           <span data-i18n="add">Add</span>
-        </button>
-        <button onclick="openModal('modalQrTool')"
-          class="p-2 rounded-xl bg-slate-800/80 active:bg-slate-700 text-slate-300 hover:text-white transition"
-          title="Packaging QR Generator">
-          <i data-lucide="qr-code" class="w-4 h-4"></i>
         </button>
       </div>
 
@@ -146,10 +151,16 @@
       <p class="text-xs text-slate-400 max-w-xs mx-auto mb-5 leading-relaxed" data-i18n="no_devices_sub">
         Plug your SmartTank controller into power, and scan the QR code on your product box to link it.
       </p>
-      <button onclick="openModal('modalAddDevice')"
-        class="px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition shadow-lg shadow-sky-600/30" data-i18n="pair_first">
-        Pair Your First Device
-      </button>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-2 max-w-xs mx-auto">
+        <button onclick="openModal('modalAddDevice')"
+          class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition shadow-lg shadow-sky-600/30" data-i18n="pair_first">
+          Pair Your First Device
+        </button>
+        <button onclick="openWelcomeJourney(0)"
+          class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition border border-slate-700">
+          <span data-i18n="view_guide">📖 How It Works</span>
+        </button>
+      </div>
     </div>
 
     <!-- Collapsible Activity History Drawer (Optimized for Phones) -->
@@ -188,7 +199,46 @@
   </footer>
 
   <!-- ========================================================================= -->
-  <!-- MODAL: LANGUAGE SELECTION (First-Time & On-Demand)                        -->
+  <!-- MODAL: ELDERLY-FRIENDLY WELCOME USER JOURNEY (3 Easy Visual Steps)        -->
+  <!-- ========================================================================= -->
+  <div id="modalWelcomeJourney" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-card rounded-3xl w-full max-w-sm p-6 border border-slate-700 shadow-2xl text-center">
+      
+      <!-- Top Step Counter & Close -->
+      <div class="flex items-center justify-between mb-3 border-b border-slate-800/80 pb-2">
+        <span class="text-[11px] font-extrabold text-sky-400 uppercase tracking-wider" id="guideStepCounter">Step 1 of 3</span>
+        <button onclick="closeModal('modalWelcomeJourney')" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Step Content Area -->
+      <div id="guideStepContent" class="py-4">
+        <!-- Dynamically populated step content -->
+      </div>
+
+      <!-- Step Dots Indicator -->
+      <div class="flex items-center justify-center space-x-2 my-3" id="guideDots">
+        <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-slate-700"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-slate-700"></span>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="flex items-center space-x-2 pt-2">
+        <button id="guideBtnPrev" onclick="prevGuideStep()" class="w-1/3 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs transition">
+          &larr; Back
+        </button>
+        <button id="guideBtnNext" onclick="nextGuideStep()" class="w-2/3 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 active:bg-sky-500 text-white font-bold text-xs transition shadow-md shadow-sky-600/30">
+          Next &rarr;
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: LANGUAGE SELECTION                                                 -->
   <!-- ========================================================================= -->
   <div id="modalLanguage" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
     <div class="glass-card rounded-3xl w-full max-w-sm p-6 border border-slate-700 shadow-2xl">
@@ -357,6 +407,7 @@
         no_devices: "No Devices Paired Yet",
         no_devices_sub: "Plug your SmartTank controller into power, and scan the QR code on your product box to link it.",
         pair_first: "Pair Your First Device",
+        view_guide: "📖 How It Works",
         live_activity: "Live Activity & Events",
         view_log: "View Log",
         hide_log: "Hide Log",
@@ -390,7 +441,29 @@
         remove: "Remove",
         confirm_remove: "Remove device {id} from this phone?",
         uptime: "Uptime",
-        run: "Run"
+        run: "Run",
+        presets_title: "Smart Presets & Safety",
+        active_badge: "ACTIVE",
+        morning_timer_title: "Morning Water Timer",
+        morning_timer_desc: "Automatically turns motor ON at this time to catch municipal supply.",
+        daily: "Daily",
+        max_runtime_title: "Motor Safety Lock (Max Run)",
+        max_runtime_desc: "Shuts motor off if running continuously to protect pump from coil burnout.",
+        full_tank_safety: "100% Full Auto-Cut",
+        full_tank_desc: "Auto-shuts motor off within 5 seconds when tank reaches 100% full.",
+        locked_badge: "LOCKED",
+        protected_badge: "PROTECTED",
+        chime_title: "Phone Tank Full Chime",
+        chime_desc: "Plays a pleasant sound on your phone when tank is full.",
+        guide_step1_title: "One-Tap Simple Power",
+        guide_step1_desc: "Tap the big green circle to start the water pump. Tap the red circle to stop it anytime from anywhere.",
+        guide_step2_title: "Never Overflow Again",
+        guide_step2_desc: "Equipped with an automatic 5-second wave cutoff. The moment your tank reaches 100%, the motor turns off on its own.",
+        guide_step3_title: "Morning Timer & Safety",
+        guide_step3_desc: "Set your morning municipal supply time and maximum 60-minute safety lock. Rest easy knowing your pump will never burn dry.",
+        guide_got_it: "Got It, Start Using SmartTank &rarr;",
+        back: "&larr; Back",
+        next: "Next &rarr;"
       },
       hi: {
         label: "हिंदी",
@@ -401,6 +474,7 @@
         no_devices: "कोई कंट्रोलर कनेक्ट नहीं है",
         no_devices_sub: "अपने स्मार्टटैंक कंट्रोलर को चालू करें और बॉक्स पर दिए गए क्यूआर कोड को स्कैन करें।",
         pair_first: "पहला कंट्रोलर जोड़ें",
+        view_guide: "📖 यह कैसे काम करता है?",
         live_activity: "लाइव गतिविधि और लॉग",
         view_log: "लॉग देखें",
         hide_log: "लॉग छुपाएं",
@@ -434,7 +508,29 @@
         remove: "हटाएं",
         confirm_remove: "क्या आप डिवाइस {id} को इस फोन से हटाना चाहते हैं?",
         uptime: "चालू समय",
-        run: "रन"
+        run: "रन",
+        presets_title: "स्मार्ट टाइमर और सुरक्षा सेटिंग्स",
+        active_badge: "चालू",
+        morning_timer_title: "सुबह का ऑटो-स्टार्ट टाइमर",
+        morning_timer_desc: "सरकारी पानी आने के समय मोटर अपने आप चालू हो जाएगी।",
+        daily: "रोजाना",
+        max_runtime_title: "मोटर सुरक्षा लॉक (मैक्स रनटाइम)",
+        max_runtime_desc: "मोटर को लगातार चलने से रोककर मोटर कॉइल जलने से बचाता है।",
+        full_tank_safety: "100% टंकी फुल ऑटो-कट",
+        full_tank_desc: "टंकी भरते ही 5 सेकंड में मोटर अपने आप बंद हो जाती है।",
+        locked_badge: "सुरक्षित",
+        protected_badge: "सुरक्षित",
+        chime_title: "टंकी फुल होने पर फोन पर घंटी",
+        chime_desc: "टंकी पूरी भरने पर आपके फोन पर एक प्यारी घंटी बजेगी।",
+        guide_step1_title: "एक बटन से आसान कंट्रोल",
+        guide_step1_desc: "बड़ा हरा बटन दबाकर मोटर चालू करें। लाल बटन दबाकर कहीं से भी कभी भी बंद करें।",
+        guide_step2_title: "टंकी कभी ओवरफ्लो नहीं होगी",
+        guide_step2_desc: "5-सेकंड ऑटो-कट सुरक्षा: जैसे ही पानी छत की टंकी में भर जाता है, मोटर खुद बंद हो जाती है।",
+        guide_step3_title: "सुबह का टाइमर और सुरक्षा",
+        guide_step3_desc: "सुबह का सरकारी पानी का समय सेट करें। 60 मिनट की सुरक्षा लॉक से मोटर कभी खाली नहीं चलेगी।",
+        guide_got_it: "समझ गए, ऐप शुरू करें &rarr;",
+        back: "&larr; पीछे",
+        next: "आगे &rarr;"
       },
       hinglish: {
         label: "Hinglish",
@@ -445,6 +541,7 @@
         no_devices: "Koi Controller Linked Nahi Hai",
         no_devices_sub: "SmartTank controller ko power on karein aur box ka QR code scan karein.",
         pair_first: "Pehla Controller Jodein",
+        view_guide: "📖 Yeh Kaise Kaam Karta Hai?",
         live_activity: "Live Activity & Logs",
         view_log: "Log Dekhein",
         hide_log: "Log Chupayein",
@@ -461,8 +558,8 @@
         link_btn: "Controller Link Karein",
         start_motor: "START MOTOR",
         stop_motor: "STOP MOTOR",
-        tap_to_run: "MOTOR CHALANE KE LIYE DABAYE",
-        tap_to_stop: "MOTOR BAND KARNE KE LIYE DABAYE",
+        tap_to_run: "CHALANE KE LIYE DABAYE",
+        tap_to_stop: "BAND KARNE KE LIYE DABAYE",
         motor_running: "MOTOR CHALU HAI",
         motor_stopped: "MOTOR BAND HAI",
         tank_header: "Chhat Ki Tanki",
@@ -478,7 +575,29 @@
         remove: "Remove",
         confirm_remove: "Device {id} ko remove karein?",
         uptime: "Uptime",
-        run: "Run"
+        run: "Run",
+        presets_title: "Smart Presets & Safety",
+        active_badge: "ACTIVE",
+        morning_timer_title: "Subah Ka Auto-Start Timer",
+        morning_timer_desc: "Municipal water supply aane par motor apne aap chalu ho jayegi.",
+        daily: "Daily",
+        max_runtime_title: "Motor Safety Lock (Max Run)",
+        max_runtime_desc: "Motor ko continuous chalne se rok kar coil jalne se bachata hai.",
+        full_tank_safety: "100% Full Auto-Cut",
+        full_tank_desc: "Tanki bharte hi 5 second mein motor apne aap band ho jati hai.",
+        locked_badge: "LOCKED",
+        protected_badge: "PROTECTED",
+        chime_title: "Tanki Full Phone Alert",
+        chime_desc: "Tanki full hone par phone par alert sound bajega.",
+        guide_step1_title: "Ek Button Se Easy Control",
+        guide_step1_desc: "Bada green button daba kar motor chalu karein. Red button se kabhi bhi band karein.",
+        guide_step2_title: "Tanki Kabhi Overflow Nahi Hogi",
+        guide_step2_desc: "Jaise hi tanki 100% full hoti hai, motor apne aap band ho jati hai.",
+        guide_step3_title: "Subah Ka Timer & Safety",
+        guide_step3_desc: "Subah municipal supply ka time set karein aur befikr soyein. 60 min dry-run safety active rehti hai.",
+        guide_got_it: "Samajh Gaye, Shuru Karein &rarr;",
+        back: "&larr; Peeche",
+        next: "Aage &rarr;"
       },
       pa: {
         label: "ਪੰਜਾਬੀ",
@@ -489,6 +608,7 @@
         no_devices: "ਕੋਈ ਕੰਟਰੋਲਰ ਕਨੈਕਟ ਨਹੀਂ ਹੈ",
         no_devices_sub: "ਆਪਣੇ ਸਮਾਰਟਟੈਂਕ ਕੰਟਰੋਲਰ ਨੂੰ ਚਾਲੂ ਕਰੋ ਅਤੇ ਬਕਸੇ ਉੱਤੇ ਕਿਊਆਰ ਕੋਡ ਸਕੈਨ ਕਰੋ।",
         pair_first: "ਪਹਿਲਾ ਕੰਟਰੋਲਰ ਜੋੜੋ",
+        view_guide: "📖 ਇਹ ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ?",
         live_activity: "ਲਾਈਵ ਗਤੀਵਿਧੀ ਅਤੇ ਲੌਗ",
         view_log: "ਲੌਗ ਦੇਖੋ",
         hide_log: "ਲੌਗ ਛੁਪਾਓ",
@@ -522,12 +642,34 @@
         remove: "ਹਟਾਓ",
         confirm_remove: "ਕੀ ਤੁਸੀਂ ਡਿਵਾਈਸ {id} ਨੂੰ ਹਟਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ?",
         uptime: "ਚਾਲੂ ਸਮਾਂ",
-        run: "ਰਨ"
+        run: "ਰਨ",
+        presets_title: "ਸਮਾਰਟ ਟਾਈਮਰ ਅਤੇ ਸੁਰੱਖਿਆ",
+        active_badge: "ਚਾਲੂ",
+        morning_timer_title: "ਸਵੇਰ ਦਾ ਆਟੋ-ਸਟਾਰਟ ਟਾਈਮਰ",
+        morning_timer_desc: "ਸਰਕਾਰੀ ਪਾਣੀ ਆਉਣ 'ਤੇ ਮੋਟਰ ਆਪਣੇ ਆਪ ਚਾਲੂ ਹੋ ਜਾਵੇਗੀ।",
+        daily: "ਰੋਜ਼ਾਨਾ",
+        max_runtime_title: "ਮੋਟਰ ਸੁਰੱਖਿਆ ਲਾਕ (ਵੱਧ ਤੋਂ ਵੱਧ ਸਮਾਂ)",
+        max_runtime_desc: "ਮੋਟਰ ਨੂੰ ਲਗਾਤਾਰ ਚੱਲਣ ਤੋਂ ਰੋਕ ਕੇ ਸੜਨ ਤੋਂ ਬਚਾਉਂਦਾ ਹੈ।",
+        full_tank_safety: "100% ਟੈਂਕੀ ਫੁੱਲ ਆਟੋ-ਕੱਟ",
+        full_tank_desc: "ਟੈਂਕੀ ਭਰਦੇ ਹੀ 5 ਸੈਕਿੰਡ ਵਿੱਚ ਮੋਟਰ ਆਪਣੇ ਆਪ ਬੰਦ ਹੋ ਜਾਂਦੀ ਹੈ।",
+        locked_badge: "ਸੁਰੱਖਿਅਤ",
+        protected_badge: "ਸੁਰੱਖਿਅਤ",
+        chime_title: "ਟੈਂਕੀ ਫੁੱਲ ਹੋਣ 'ਤੇ ਫੋਨ 'ਤੇ ਘੰਟੀ",
+        chime_desc: "ਟੈਂਕੀ ਪੂਰੀ ਭਰਨ 'ਤੇ ਤੁਹਾਡੇ ਫੋਨ 'ਤੇ ਸੁਰੀਲੀ ਘੰਟੀ ਵੱਜੇਗੀ।",
+        guide_step1_title: "ਇੱਕ ਬਟਨ ਨਾਲ ਸੌਖਾ ਕੰਟਰੋਲ",
+        guide_step1_desc: "ਵੱਡਾ ਹਰਾ ਬਟਨ ਦਬਾ ਕੇ ਮੋਟਰ ਚਾਲੂ ਕਰੋ। ਲਾਲ ਬਟਨ ਦਬਾ ਕੇ ਕਦੇ ਵੀ ਬੰਦ ਕਰੋ।",
+        guide_step2_title: "ਟੈਂਕੀ ਕਦੇ ਓਵਰਫਲੋਅ ਨਹੀਂ ਹੋਵੇਗੀ",
+        guide_step2_desc: "5-ਸੈਕਿੰਡ ਆਟੋ-ਕੱਟ: ਜਿਵੇਂ ਹੀ ਪਾਣੀ ਛੱਤ ਵਾਲੀ ਟੈਂਕੀ ਵਿੱਚ ਭਰ ਜਾਂਦਾ ਹੈ, ਮੋਟਰ ਖੁਦ ਬੰਦ ਹੋ ਜਾਂਦੀ ਹੈ।",
+        guide_step3_title: "ਸਵੇਰ ਦਾ ਟਾਈਮਰ ਅਤੇ ਸੁਰੱਖਿਆ",
+        guide_step3_desc: "ਸਵੇਰ ਦਾ ਪਾਣੀ ਆਉਣ ਦਾ ਸਮਾਂ ਸੈੱਟ ਕਰੋ। 60 ਮਿੰਟ ਸੁਰੱਖਿਆ ਲਾਕ ਨਾਲ ਮੋਟਰ ਕਦੇ ਖਾਲੀ ਨਹੀਂ ਚੱਲੇਗੀ।",
+        guide_got_it: "ਸਮਝ ਗਏ, ਸ਼ੁਰੂ ਕਰੋ &rarr;",
+        back: "&larr; ਪਿੱਛੇ",
+        next: "ਅੱਗੇ &rarr;"
       }
     };
 
     let currentLang = localStorage.getItem("smarttank_lang") || "en";
-    let pendingFirstPair = false;
+    let guideStep = 0;
 
     function t(key) {
       const dict = I18N[currentLang] || I18N["en"];
@@ -545,13 +687,14 @@
       // Update radio checkmark visuals in modal
       ["en", "hi", "hinglish", "pa"].forEach(l => {
         const btn = document.getElementById(`optLang-${l}`);
+        if (!btn) return;
         const icon = btn.querySelector(".check-icon");
         if (l === currentLang) {
           btn.className = "flex items-center justify-between p-3.5 rounded-2xl border transition active:scale-98 bg-sky-950/40 border-sky-400 ring-2 ring-sky-500/20";
-          icon.classList.remove("hidden");
+          if (icon) icon.classList.remove("hidden");
         } else {
           btn.className = "flex items-center justify-between p-3.5 rounded-2xl border transition active:scale-98 bg-slate-900/80 border-slate-700 hover:border-slate-500";
-          icon.classList.add("hidden");
+          if (icon) icon.classList.add("hidden");
         }
       });
 
@@ -575,11 +718,114 @@
       closeModal("modalLanguage");
       triggerHaptic("start");
 
-      // If user came via QR code pairing link, proceed straight to pairing modal
-      const urlParams = new URLSearchParams(window.location.search);
-      const pairId = urlParams.get("pair") || urlParams.get("id");
-      if (pairId) {
-        openModal("modalAddDevice");
+      const hasSeenGuide = localStorage.getItem("smarttank_guide_seen");
+      if (!hasSeenGuide) {
+        openWelcomeJourney(0);
+      } else {
+        const urlParams = new URLSearchParams(window.location.search);
+        const pairId = urlParams.get("pair") || urlParams.get("id");
+        if (pairId) {
+          openModal("modalAddDevice");
+        }
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Elderly-Friendly Welcome User Journey
+    // -------------------------------------------------------------------------
+    const GUIDE_STEPS = [
+      {
+        icon: "power",
+        color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/20",
+        titleKey: "guide_step1_title",
+        descKey: "guide_step1_desc"
+      },
+      {
+        icon: "waves",
+        color: "text-sky-400 bg-sky-500/10 border-sky-500/20 shadow-sky-500/20",
+        titleKey: "guide_step2_title",
+        descKey: "guide_step2_desc"
+      },
+      {
+        icon: "clock",
+        color: "text-amber-400 bg-amber-500/10 border-amber-500/20 shadow-amber-500/20",
+        titleKey: "guide_step3_title",
+        descKey: "guide_step3_desc"
+      }
+    ];
+
+    function openWelcomeJourney(stepIndex = 0) {
+      guideStep = stepIndex;
+      renderGuideStep();
+      openModal("modalWelcomeJourney");
+    }
+
+    function renderGuideStep() {
+      const step = GUIDE_STEPS[guideStep];
+      const counter = document.getElementById("guideStepCounter");
+      const content = document.getElementById("guideStepContent");
+      const prevBtn = document.getElementById("guideBtnPrev");
+      const nextBtn = document.getElementById("guideBtnNext");
+      const dots = document.getElementById("guideDots");
+
+      if (counter) counter.innerText = `Step ${guideStep + 1} of 3`;
+
+      if (content) {
+        content.innerHTML = `
+          <div class="w-16 h-16 mx-auto mb-4 rounded-3xl ${step.color} border flex items-center justify-center shadow-lg">
+            <i data-lucide="${step.icon}" class="w-8 h-8"></i>
+          </div>
+          <h3 class="text-base font-extrabold text-white mb-2">${t(step.titleKey)}</h3>
+          <p class="text-xs text-slate-300 leading-relaxed max-w-xs mx-auto">${t(step.descKey)}</p>
+        `;
+        lucide.createIcons();
+      }
+
+      if (dots) {
+        dots.innerHTML = [0, 1, 2].map(idx => `
+          <span class="w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === guideStep ? 'bg-sky-400 w-5' : 'bg-slate-700'}"></span>
+        `).join("");
+      }
+
+      if (prevBtn) {
+        prevBtn.style.visibility = guideStep === 0 ? "hidden" : "visible";
+        prevBtn.innerHTML = t("back");
+      }
+
+      if (nextBtn) {
+        if (guideStep === GUIDE_STEPS.length - 1) {
+          nextBtn.innerHTML = t("guide_got_it");
+          nextBtn.className = "w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 active:bg-emerald-500 text-white font-bold text-xs transition shadow-md shadow-emerald-600/30";
+        } else {
+          nextBtn.innerHTML = t("next");
+          nextBtn.className = "w-2/3 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 active:bg-sky-500 text-white font-bold text-xs transition shadow-md shadow-sky-600/30";
+        }
+      }
+    }
+
+    function nextGuideStep() {
+      if (guideStep < GUIDE_STEPS.length - 1) {
+        guideStep++;
+        renderGuideStep();
+        triggerHaptic("click");
+      } else {
+        localStorage.setItem("smarttank_guide_seen", "true");
+        closeModal("modalWelcomeJourney");
+        triggerHaptic("start");
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const pairId = urlParams.get("pair") || urlParams.get("id");
+        if (pairId) {
+          openModal("modalAddDevice");
+        }
+      }
+    }
+
+    function prevGuideStep() {
+      if (guideStep > 0) {
+        guideStep--;
+        renderGuideStep();
+        triggerHaptic("click");
       }
     }
   </script>
@@ -704,6 +950,55 @@
     }
 
     // -------------------------------------------------------------------------
+    // Device Presets Manager
+    // -------------------------------------------------------------------------
+    function getDevicePresets(devId) {
+      const raw = localStorage.getItem(`smarttank_presets_${devId}`);
+      if (!raw) {
+        return {
+          morningSchedule: false,
+          morningTime: "06:30",
+          maxRuntime: 60,
+          chimeEnabled: true
+        };
+      }
+      try {
+        return JSON.parse(raw);
+      } catch (e) {
+        return { morningSchedule: false, morningTime: "06:30", maxRuntime: 60, chimeEnabled: true };
+      }
+    }
+
+    function updateDevicePreset(devId) {
+      const toggle = document.getElementById(`presetMorningToggle-${devId}`);
+      const timeInp = document.getElementById(`presetMorningTime-${devId}`);
+      const maxSelect = document.getElementById(`presetMaxRuntime-${devId}`);
+
+      const preset = {
+        morningSchedule: toggle ? toggle.checked : false,
+        morningTime: timeInp ? timeInp.value : "06:30",
+        maxRuntime: maxSelect ? parseInt(maxSelect.value, 10) : 60,
+        chimeEnabled: true
+      };
+
+      localStorage.setItem(`smarttank_presets_${devId}`, JSON.stringify(preset));
+      triggerHaptic("click");
+      playBeep(720, 0.08);
+
+      // Publish preset command to ESP-01S over MQTT
+      if (mqttClient && mqttClient.connected) {
+        const cmdTopic = `smarttank/${devId}/cmd`;
+        const payload = {
+          schedule_on: preset.morningSchedule ? 1 : 0,
+          schedule_time: preset.morningTime,
+          max_runtime: preset.maxRuntime
+        };
+        mqttClient.publish(cmdTopic, JSON.stringify(payload), { qos: 1 });
+        appendLog("CONFIG", `Updated presets for [${devId}]: Morning ${preset.morningTime} (${preset.morningSchedule ? "ON" : "OFF"}), Max Run ${preset.maxRuntime}m`, "emerald");
+      }
+    }
+
+    // -------------------------------------------------------------------------
     // MQTT Engine (WebSockets + Sub-30ms Fast Path)
     // -------------------------------------------------------------------------
     function initMQTT() {
@@ -720,6 +1015,16 @@
         document.getElementById("mqttStatusText").innerText = "Cloud Gateway Live";
         appendLog("NETWORK", "Connected to Cloud Broker via WebSockets.", "emerald");
         subscribeToDevices();
+
+        // Push presets on connect
+        devices.forEach(dev => {
+          const p = getDevicePresets(dev.id);
+          mqttClient.publish(`smarttank/${dev.id}/cmd`, JSON.stringify({
+            schedule_on: p.morningSchedule ? 1 : 0,
+            schedule_time: p.morningTime,
+            max_runtime: p.maxRuntime
+          }));
+        });
       });
 
       mqttClient.on("reconnect", () => {
@@ -769,6 +1074,8 @@
       }
       else if (type === "state") {
         const wasOnline = deviceStates[devId].online;
+        const wasFull = deviceStates[devId].tankFull === 1;
+
         deviceStates[devId] = {
           ...deviceStates[devId],
           ...data,
@@ -781,6 +1088,13 @@
           playBeep(980, 0.1);
         }
 
+        // Pleasant Tank-Full Chime when state changes from normal to 100% full
+        if (!wasFull && data.tankFull === 1) {
+          triggerHaptic("start");
+          playBeep(880, 0.25, "triangle");
+          setTimeout(() => playBeep(1174, 0.35, "sine"), 200);
+        }
+
         updateDeviceStateDOM(devId, data);
         updatePresenceDOM();
       }
@@ -791,7 +1105,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // Mobile-First Device Card Builder (i18n Aware)
+    // Mobile-First Device Card Builder (i18n & Presets Aware)
     // -------------------------------------------------------------------------
     function buildDeviceDOM() {
       const container = document.getElementById("deviceContainer");
@@ -805,7 +1119,10 @@
 
       emptyState.classList.add("hidden");
 
-      container.innerHTML = devices.map(dev => `
+      container.innerHTML = devices.map(dev => {
+        const preset = getDevicePresets(dev.id);
+
+        return `
         <div class="glass-card rounded-3xl p-5 border border-slate-800/80 relative overflow-hidden shadow-2xl transition" id="card-${dev.id}">
           <!-- Top Accent Line -->
           <div id="bar-${dev.id}" class="absolute top-0 left-0 right-0 h-1.5 bg-slate-700 transition-colors duration-300"></div>
@@ -851,7 +1168,7 @@
           </div>
 
           <!-- Big Tactile One-Handed Motor Button (Optimized for Android Thumb) -->
-          <div class="flex flex-col items-center justify-center py-3">
+          <div class="flex flex-col items-center justify-center py-2">
             <button id="btnAction-${dev.id}" onclick="triggerMotorToggle('${dev.id}')" disabled
                     class="w-40 h-40 rounded-full flex flex-col items-center justify-center gap-1 transition-all duration-300 transform active:scale-95 shadow-2xl bg-slate-800 border-4 border-slate-700 text-slate-500 cursor-not-allowed">
               <i data-lucide="power" class="w-10 h-10 mb-0.5" id="btnIcon-${dev.id}"></i>
@@ -860,8 +1177,8 @@
             </button>
           </div>
 
-          <!-- Footer Information & Status -->
-          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+          <!-- Status Bar -->
+          <div class="my-3 py-2 px-3 rounded-xl bg-slate-900/50 border border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
             <div class="flex items-center space-x-2">
               <span id="dotMotor-${dev.id}" class="w-2 h-2 rounded-full bg-slate-600"></span>
               <span id="motorStateText-${dev.id}" class="font-bold text-slate-400">${t("motor_stopped")}</span>
@@ -872,8 +1189,87 @@
             </div>
           </div>
 
+          <!-- =============================================================== -->
+          <!-- SMART PRESETS & AUTOMATIONS ACCORDION (Elderly-Friendly)       -->
+          <!-- =============================================================== -->
+          <div class="mt-4 pt-3.5 border-t border-slate-800/80">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center space-x-2">
+                <i data-lucide="sliders" class="w-4 h-4 text-sky-400"></i>
+                <h3 class="text-xs font-bold text-white tracking-wide">${t("presets_title")}</h3>
+              </div>
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${t("active_badge")}</span>
+            </div>
+
+            <div class="space-y-2.5">
+              
+              <!-- Preset 1: Morning Water Timer -->
+              <div class="p-3.5 rounded-2xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-between">
+                <div class="pr-2 flex-1">
+                  <div class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <span>⏰</span> <span>${t("morning_timer_title")}</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-0.5 leading-snug">${t("morning_timer_desc")}</p>
+                  
+                  <div class="mt-2.5 flex items-center space-x-2">
+                    <input type="time" id="presetMorningTime-${dev.id}" value="${preset.morningTime || '06:30'}"
+                           onchange="updateDevicePreset('${dev.id}')"
+                           class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white font-mono outline-none focus:border-sky-500 font-bold">
+                    <span class="text-[10px] text-slate-400 font-medium">${t("daily")}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="presetMorningToggle-${dev.id}" ${preset.morningSchedule ? 'checked' : ''}
+                           onchange="updateDevicePreset('${dev.id}')" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Preset 2: Max Runtime Dry-Run Lock -->
+              <div class="p-3.5 rounded-2xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-between">
+                <div class="pr-2 flex-1">
+                  <div class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <span>🛡️</span> <span>${t("max_runtime_title")}</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-0.5 leading-snug">${t("max_runtime_desc")}</p>
+                  
+                  <div class="mt-2.5 flex items-center space-x-2">
+                    <select id="presetMaxRuntime-${dev.id}" onchange="updateDevicePreset('${dev.id}')"
+                            class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white outline-none focus:border-sky-500 font-bold">
+                      <option value="30" ${preset.maxRuntime == 30 ? 'selected' : ''}>30 Min Cutoff</option>
+                      <option value="45" ${preset.maxRuntime == 45 ? 'selected' : ''}>45 Min Cutoff</option>
+                      <option value="60" ${preset.maxRuntime == 60 ? 'selected' : ''}>60 Min Cutoff (Max)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <span class="text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">${t("protected_badge")}</span>
+                </div>
+              </div>
+
+              <!-- Preset 3: Tank Full 100% Auto-Cut -->
+              <div class="p-3 rounded-2xl bg-slate-900/40 border border-slate-800/60 flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <span>💧</span> <span>${t("full_tank_safety")}</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-0.5 leading-snug">${t("full_tank_desc")}</p>
+                </div>
+                <div>
+                  <span class="text-[10px] font-bold px-2 py-1 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/30">${t("locked_badge")}</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
         </div>
-      `).join("");
+        `;
+      }).join("");
 
       lucide.createIcons();
       updatePresenceDOM();
