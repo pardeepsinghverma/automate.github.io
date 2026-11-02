@@ -1,10 +1,16 @@
 {
-  "version": "2.7.2",
-  "build": 272,
+  "version": "2.7.3",
+  "build": 273,
   "release_date": "2026-11-03",
   "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
-  "release_notes": "Live fleet test update: Enhanced BearSSL TLS handshake buffer, flushed MQTT telemetry alerts, and live OTA progress synchronization.",
+  "release_notes": "Reliability stress test: Fully verified zero-touch OTA fleet update with memory-scoped TLS stack and direct URL streaming.",
   "changelog": [
+    {
+      "version": "2.7.3",
+      "build": 273,
+      "date": "2026-11-03",
+      "notes": "Verified repeated wireless Over-The-Air firmware flash and instant cloud reconnection."
+    },
     {
       "version": "2.7.2",
       "build": 272,
