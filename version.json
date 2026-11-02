@@ -2,7 +2,7 @@
   "version": "2.7.0",
   "build": 270,
   "release_date": "2026-11-03",
-  "url": "https://raw.githubusercontent.com/pardeepsinghverma/automate.github.io/main/firmware.bin",
+  "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
   "release_notes": "Persistent Non-Volatile Run Cycle Logging in EEPROM (Start/Stop triggers, duration, timestamps) with 50-year zero flash wear, MQTT cycle telemetry, and weekly usage analytics.",
   "changelog": [
     {
