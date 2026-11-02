@@ -212,6 +212,68 @@
       </div>
     </div>
 
+    <!-- ========================================================================= -->
+    <!-- WEEKLY USAGE & MOTOR RUN HISTORY CARD                                      -->
+    <!-- ========================================================================= -->
+    <div id="weeklyHistorySection" class="glass-card rounded-3xl border border-slate-800 p-4 space-y-3.5 shadow-xl hidden">
+      <!-- Title & Sync Button -->
+      <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500/20 to-blue-600/20 border border-sky-500/30 text-sky-400 flex items-center justify-center">
+            <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-xs font-bold text-white flex items-center gap-1.5">
+              <span data-i18n="history_title">Weekly Usage & Motor History</span>
+              <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20" data-i18n="auto_recorded">In Chip</span>
+            </h3>
+            <p class="text-[10px] text-slate-400" data-i18n="history_subtitle">Automatic run tracking & daily schedule insights</p>
+          </div>
+        </div>
+        <button onclick="refreshHistoryFromDevice()" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-slate-300 transition" title="Sync from Chip">
+          <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <!-- Weekly Stats Grid -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
+          <div class="text-[9px] uppercase tracking-wider font-bold text-slate-400" data-i18n="stat_runtime">This Week</div>
+          <div class="text-xs font-black text-white mt-0.5" id="statWeeklyRuntime">0 min</div>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
+          <div class="text-[9px] uppercase tracking-wider font-bold text-slate-400" data-i18n="stat_water">Water Filled</div>
+          <div class="text-xs font-black text-sky-400 mt-0.5" id="statWeeklyWater">~0 L</div>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
+          <div class="text-[9px] uppercase tracking-wider font-bold text-slate-400" data-i18n="stat_power">Power Units</div>
+          <div class="text-xs font-black text-emerald-400 mt-0.5" id="statWeeklyPower">~0 kWh</div>
+        </div>
+      </div>
+
+      <!-- 7-Day Visual Bar Chart -->
+      <div>
+        <div class="flex items-center justify-between text-[10px] text-slate-400 mb-1.5 font-medium">
+          <span data-i18n="chart_label">Daily Runtime (Last 7 Days)</span>
+          <span class="text-slate-500 font-mono text-[9px]" id="chartRangeLabel">7 Days</span>
+        </div>
+        <div class="flex items-end justify-between gap-1.5 h-16 pt-2 pb-1 px-2 bg-slate-950/70 rounded-2xl border border-slate-900" id="weeklyBarChartContainer">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Recent Sessions List -->
+      <div>
+        <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2 flex items-center justify-between">
+          <span data-i18n="recent_runs">Recent Motor Sessions</span>
+          <span class="text-[9px] text-slate-500" id="historySessionCount">0 Runs</span>
+        </div>
+        <div id="recentSessionsList" class="space-y-1.5 max-h-48 overflow-y-auto terminal-scroll">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
     <!-- Collapsible Activity History Drawer (Optimized for Phones) -->
     <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden">
       <button onclick="toggleLogVisibility()" class="w-full px-4 py-3 flex items-center justify-between text-left text-xs font-bold text-slate-300 active:bg-slate-800/50 transition">
@@ -668,7 +730,24 @@
         tour_step4_title: "1-Tap Home Screen App",
         tour_step4_desc: "Install SmartTank on your home screen so you can open it anytime like a native app without Chrome!",
         tour_finish: "Start Using SmartTank &rarr;",
-        tour_step_counter: "Step {step} of 4"
+        tour_step_counter: "Step {step} of 4",
+        history_title: "Weekly Motor & Water Usage",
+        history_subtitle: "Automatic run tracking & daily schedule insights",
+        stat_runtime: "This Week",
+        stat_water: "Water Filled",
+        stat_power: "Power Units",
+        chart_label: "Daily Runtime (Last 7 Days)",
+        recent_runs: "Recent Motor Sessions",
+        auto_recorded: "In Chip",
+        no_runs_yet: "No motor runs recorded yet. Start your motor or wait for schedule to see insights!",
+        trigger_schedule: "Morning Schedule",
+        trigger_touch: "Touch Sensor",
+        trigger_app: "Mobile App",
+        trigger_manual: "Web Button",
+        reason_tank_full: "Tank Full (Auto-Cut)",
+        reason_safety: "Safety Limit (Auto-Cut)",
+        reason_stopped: "Stopped Manually",
+        ran_for: "Ran for"
       },
       hi: {
         label: "हिंदी",
@@ -754,7 +833,24 @@
         tour_step4_title: "1-टच फोन ऐप बनाएं",
         tour_step4_desc: "स्मार्टटैंक को अपने फोन की होम स्क्रीन पर जोड़ें, ताकि आप इसे व्हाट्सऐप की तरह सीधे 1 टच में खोल सकें!",
         tour_finish: "ऐप शुरू करें &rarr;",
-        tour_step_counter: "चरण {step} / 4"
+        tour_step_counter: "चरण {step} / 4",
+        history_title: "हफ्ते का मोटर व पानी रिकॉर्ड",
+        history_subtitle: "दैनिक मोटर चलने का समय और पानी का हिसाब",
+        stat_runtime: "इस हफ्ते",
+        stat_water: "पानी भरा",
+        stat_power: "बिजली यूनिट",
+        chart_label: "दैनिक समय (पिछले 7 दिन)",
+        recent_runs: "हाल ही में चली मोटर",
+        auto_recorded: "चिप में सुरक्षित",
+        no_runs_yet: "अभी तक कोई मोटर रिकॉर्ड नहीं है। मोटर चलाने पर यहाँ चार्ट दिखेगा!",
+        trigger_schedule: "सुबह का टाइमर",
+        trigger_touch: "टच स्विच",
+        trigger_app: "मोबाइल ऐप",
+        trigger_manual: "वेब बटन",
+        reason_tank_full: "टंकी फुल (ऑटो-कट)",
+        reason_safety: "सुरक्षा लिमिट ऑटो-ऑफ",
+        reason_stopped: "हाथ से बंद किया",
+        ran_for: "चली"
       },
       hinglish: {
         label: "Hinglish",
@@ -840,7 +936,24 @@
         tour_step4_title: "1-Tap Home Screen App",
         tour_step4_desc: "SmartTank ko phone screen par add karein, taaki WhatsApp ki tarah bina Chrome khole direct use kar sakein!",
         tour_finish: "Shuru Karein &rarr;",
-        tour_step_counter: "Step {step} of 4"
+        tour_step_counter: "Step {step} of 4",
+        history_title: "Weekly Motor & Water Usage",
+        history_subtitle: "Daily motor run time aur paani ka hisaab",
+        stat_runtime: "Is Hafte",
+        stat_water: "Paani Bhara",
+        stat_power: "Bijli Units",
+        chart_label: "Daily Time (Last 7 Days)",
+        recent_runs: "Recent Motor Runs",
+        auto_recorded: "Chip Safe",
+        no_runs_yet: "Abhi koi run record nahi hai. Motor chalne par yahan chart dikhega!",
+        trigger_schedule: "Morning Timer",
+        trigger_touch: "Touch Switch",
+        trigger_app: "Mobile App",
+        trigger_manual: "Web Button",
+        reason_tank_full: "Tanki Full (Auto-Cut)",
+        reason_safety: "Safety Limit Cutoff",
+        reason_stopped: "Band Kiya",
+        ran_for: "Chali"
       },
       pa: {
         label: "ਪੰਜਾਬੀ",
@@ -926,7 +1039,24 @@
         tour_step4_title: "1-ਟੱਚ ਫੋਨ ਐਪ ਬਣਾਓ",
         tour_step4_desc: "ਸਮਾਰਟਟੈਂਕ ਨੂੰ ਆਪਣੇ ਫੋਨ ਦੀ ਹੋਮ ਸਕ੍ਰੀਨ 'ਤੇ ਜੋੜੋ, ਤਾਂ ਜੋ ਤੁਸੀਂ ਇਸਨੂੰ ਬਿਨਾਂ ਕਰੋਮ ਖੋਲ੍ਹੇ 1 ਟੱਚ ਨਾਲ ਸਿੱਧਾ ਵਰਤ ਸਕੋ!",
         tour_finish: "ਐਪ ਸ਼ੁਰੂ ਕਰੋ &rarr;",
-        tour_step_counter: "ਕਦਮ {step} / 4"
+        tour_step_counter: "ਕਦਮ {step} / 4",
+        history_title: "ਹਫ਼ਤੇ ਦਾ ਮੋਟਰ ਅਤੇ ਪਾਣੀ ਰਿਕਾਰਡ",
+        history_subtitle: "ਹਰ ਰੋਜ਼ ਮੋਟਰ ਚੱਲਣ ਦਾ ਸਮਾਂ ਅਤੇ ਪਾਣੀ ਦਾ ਹਿਸਾਬ",
+        stat_runtime: "ਇਸ ਹਫ਼ਤੇ",
+        stat_water: "ਪਾਣੀ ਭਰਿਆ",
+        stat_power: "ਬਿਜਲੀ ਯੂਨਿਟ",
+        chart_label: "ਰੋਜ਼ਾਨਾ ਸਮਾਂ (ਪਿਛਲੇ 7 ਦਿਨ)",
+        recent_runs: "ਹਾਲ ਹੀ ਵਿੱਚ ਚੱਲੀ ਮੋਟਰ",
+        auto_recorded: "ਚਿੱਪ 'ਚ ਸੁਰੱਖਿਅਤ",
+        no_runs_yet: "ਅਜੇ ਕੋਈ ਮੋਟਰ ਰਿਕਾਰਡ ਨਹੀਂ ਹੈ। ਮੋਟਰ ਚੱਲਣ 'ਤੇ ਇੱਥੇ ਚਾਰਟ ਦਿਖੇਗਾ!",
+        trigger_schedule: "ਸਵੇਰ ਦਾ ਟਾਈਮਰ",
+        trigger_touch: "ਟੱਚ ਸਵਿੱਚ",
+        trigger_app: "ਮੋਬਾਈਲ ਐਪ",
+        trigger_manual: "ਵੈੱਬ ਬਟਨ",
+        reason_tank_full: "ਟੈਂਕੀ ਫੁੱਲ (ਆਟੋ-ਕੱਟ)",
+        reason_safety: "ਸੁਰੱਖਿਆ ਲਿਮਿਟ ਆਟੋ-ਆਫ਼",
+        reason_stopped: "ਹੱਥ ਨਾਲ ਬੰਦ ਕੀਤਾ",
+        ran_for: "ਚੱਲੀ"
       }
     };
 
@@ -1489,7 +1619,10 @@
         mqttClient.subscribe(`smarttank/${dev.id}/state`);
         mqttClient.subscribe(`smarttank/${dev.id}/status`);
         mqttClient.subscribe(`smarttank/${dev.id}/alert`);
+        mqttClient.subscribe(`smarttank/${dev.id}/log`);
+        mqttClient.subscribe(`smarttank/${dev.id}/history`);
       });
+      refreshHistoryFromDevice();
     }
 
     function handleIncomingMQTT(topic, data) {
@@ -1552,6 +1685,249 @@
           }
         }
       }
+      else if (type === "log") {
+        saveRunLog(devId, data);
+        appendLog("CYCLE", `[${devId}] Motor run logged: ${Math.round((data.d || 0) / 60)} min`, "sky");
+      }
+      else if (type === "history") {
+        if (data.history && Array.isArray(data.history)) {
+          saveFullHistory(devId, data.history);
+          appendLog("HISTORY", `[${devId}] Synced ${data.history.length} runs from chip memory.`, "emerald");
+        }
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Weekly History & Motor Cycle Tracker Engine
+    // -------------------------------------------------------------------------
+    function getReasonLabel(code, isStart) {
+      if (isStart) {
+        switch (Number(code)) {
+          case 1: return t("trigger_schedule");
+          case 2: return t("trigger_touch");
+          case 3: return t("trigger_app");
+          case 4: return t("trigger_manual");
+          default: return t("trigger_app");
+        }
+      } else {
+        switch (Number(code)) {
+          case 1: return t("reason_tank_full");
+          case 2: return t("reason_safety");
+          case 3: return t("trigger_touch");
+          case 4: return t("trigger_app");
+          case 5: return t("trigger_manual");
+          default: return t("reason_stopped");
+        }
+      }
+    }
+
+    function getReasonBadge(code, isStart) {
+      if (isStart) {
+        switch (Number(code)) {
+          case 1: return { text: t("trigger_schedule"), icon: "clock", cls: "bg-amber-500/15 text-amber-400 border-amber-500/30" };
+          case 2: return { text: t("trigger_touch"), icon: "fingerprint", cls: "bg-purple-500/15 text-purple-400 border-purple-500/30" };
+          case 3: return { text: t("trigger_app"), icon: "smartphone", cls: "bg-sky-500/15 text-sky-400 border-sky-500/30" };
+          default: return { text: t("trigger_app"), icon: "smartphone", cls: "bg-sky-500/15 text-sky-400 border-sky-500/30" };
+        }
+      } else {
+        switch (Number(code)) {
+          case 1: return { text: t("reason_tank_full"), icon: "waves", cls: "bg-sky-500/20 text-sky-400 border-sky-500/30 font-bold" };
+          case 2: return { text: t("reason_safety"), icon: "shield-alert", cls: "bg-rose-500/15 text-rose-400 border-rose-500/30 font-bold" };
+          case 3: return { text: t("trigger_touch"), icon: "fingerprint", cls: "bg-purple-500/15 text-purple-400 border-purple-500/30" };
+          case 4: return { text: t("trigger_app"), icon: "smartphone", cls: "bg-slate-700/50 text-slate-300 border-slate-600/30" };
+          default: return { text: t("reason_stopped"), icon: "power", cls: "bg-slate-700/50 text-slate-300 border-slate-600/30" };
+        }
+      }
+    }
+
+    function getStoredHistory(devId) {
+      try {
+        const stored = localStorage.getItem("smarttank_history_" + devId);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveRunLog(devId, logItem) {
+      if (!logItem || !logItem.d || logItem.d < 3) return;
+      let history = getStoredHistory(devId);
+      const exists = history.some(h => (h.t && logItem.t && Math.abs(h.t - logItem.t) < 5));
+      if (!exists) {
+        history.unshift(logItem);
+        if (history.length > 50) history.pop();
+        localStorage.setItem("smarttank_history_" + devId, JSON.stringify(history));
+        renderWeeklyHistory();
+      }
+    }
+
+    function saveFullHistory(devId, historyArray) {
+      if (!Array.isArray(historyArray)) return;
+      let existing = getStoredHistory(devId);
+      historyArray.forEach(item => {
+        if (item.d && item.d >= 3) {
+          const exists = existing.some(h => (h.t && item.t && Math.abs(h.t - item.t) < 5));
+          if (!exists) existing.push(item);
+        }
+      });
+      existing.sort((a, b) => (b.t || 0) - (a.t || 0));
+      if (existing.length > 50) existing = existing.slice(0, 50);
+      localStorage.setItem("smarttank_history_" + devId, JSON.stringify(existing));
+      renderWeeklyHistory();
+    }
+
+    function refreshHistoryFromDevice() {
+      if (!mqttClient || !mqttClient.connected) return;
+      devices.forEach(dev => {
+        mqttClient.publish(`smarttank/${dev.id}/cmd`, JSON.stringify({ cmd: "get_history" }), { qos: 1 });
+      });
+      triggerHaptic("click");
+    }
+
+    function renderWeeklyHistory() {
+      if (devices.length === 0) return;
+      const activeDevId = devices[0].id;
+      const history = getStoredHistory(activeDevId);
+
+      // 1. Calculate 7-day stats
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      const sevenDaysAgoEpoch = Math.floor((Date.now() - (7 * oneDayMs)) / 1000);
+
+      // Filter last 7 days runs
+      const recent7DaysRuns = history.filter(h => (h.t || 0) >= sevenDaysAgoEpoch);
+
+      // Total runtime seconds in 7 days
+      const totalSec7Days = recent7DaysRuns.reduce((acc, cur) => acc + (cur.d || 0), 0);
+      const totalMin7Days = Math.round(totalSec7Days / 60);
+
+      // Est Water pumped: ~50L/min
+      const estWaterLiters = Math.round(totalMin7Days * 50);
+
+      // Est Power units: 0.75kW motor
+      const estPowerKwh = (totalMin7Days * (0.75 / 60)).toFixed(1);
+
+      const elRuntime = document.getElementById("statWeeklyRuntime");
+      const elWater = document.getElementById("statWeeklyWater");
+      const elPower = document.getElementById("statWeeklyPower");
+      const elCount = document.getElementById("historySessionCount");
+
+      if (elRuntime) {
+        if (totalMin7Days >= 60) {
+          const hrs = Math.floor(totalMin7Days / 60);
+          const mins = totalMin7Days % 60;
+          elRuntime.innerText = `${hrs}h ${mins}m`;
+        } else {
+          elRuntime.innerText = `${totalMin7Days} min`;
+        }
+      }
+      if (elWater) elWater.innerText = `~${estWaterLiters.toLocaleString()} L`;
+      if (elPower) elPower.innerText = `~${estPowerKwh} kWh`;
+      if (elCount) elCount.innerText = `${history.length} Runs`;
+
+      // 2. Build 7-Day Daily Bar Chart (from 6 days ago up to today)
+      const chartContainer = document.getElementById("weeklyBarChartContainer");
+      if (chartContainer) {
+        const days = [];
+        const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(Date.now() - (i * oneDayMs));
+          const dayStartEpoch = Math.floor(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() / 1000);
+          const dayEndEpoch = dayStartEpoch + 86400;
+
+          // Runs falling in this calendar day
+          const dayRuns = history.filter(h => (h.t >= dayStartEpoch && h.t < dayEndEpoch));
+          const daySec = dayRuns.reduce((sum, r) => sum + (r.d || 0), 0);
+          const dayMin = Math.round(daySec / 60);
+
+          days.push({
+            name: (i === 0) ? "Today" : dayNames[d.getDay()],
+            isToday: i === 0,
+            minutes: dayMin
+          });
+        }
+
+        const maxMin = Math.max(...days.map(d => d.minutes), 15); // Minimum scale 15 mins
+
+        chartContainer.innerHTML = days.map(d => {
+          const heightPct = Math.max(12, Math.round((d.minutes / maxMin) * 100));
+          const barColor = d.minutes > 0 
+            ? (d.isToday ? "bg-gradient-to-t from-sky-600 to-sky-400 shadow-md shadow-sky-500/20" : "bg-gradient-to-t from-blue-700 to-sky-500") 
+            : "bg-slate-800";
+
+          return `
+            <div class="flex-1 flex flex-col items-center justify-end h-full group">
+              <div class="text-[8px] font-mono font-bold text-slate-400 group-hover:text-white transition-opacity ${d.minutes > 0 ? '' : 'opacity-0'}">
+                ${d.minutes > 0 ? d.minutes + 'm' : ''}
+              </div>
+              <div class="w-full max-w-[20px] rounded-t-md ${barColor} transition-all duration-300" style="height: ${heightPct}%;"></div>
+              <div class="text-[9px] font-bold mt-1 ${d.isToday ? 'text-sky-400 font-black' : 'text-slate-500'}">
+                ${d.name}
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // 3. Render Recent Sessions List
+      const listContainer = document.getElementById("recentSessionsList");
+      if (listContainer) {
+        if (history.length === 0) {
+          listContainer.innerHTML = `
+            <div class="text-center py-5 px-3 bg-slate-900/40 rounded-2xl border border-slate-800/60">
+              <div class="text-xs text-slate-400 font-medium">${t("no_runs_yet")}</div>
+            </div>
+          `;
+        } else {
+          listContainer.innerHTML = history.slice(0, 8).map(run => {
+            const startBadge = getReasonBadge(run.on, true);
+            const stopBadge = getReasonBadge(run.off, false);
+            const durationMin = Math.round((run.d || 0) / 60);
+
+            // Time string formatting
+            let timeStr = "";
+            if (run.t && run.t > 100000) {
+              const runDate = new Date(run.t * 1000);
+              const isToday = runDate.toDateString() === (new Date()).toDateString();
+              const yesterday = new Date(Date.now() - 86400000);
+              const isYesterday = runDate.toDateString() === yesterday.toDateString();
+
+              const timePart = runDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+              if (isToday) timeStr = `Today, ${timePart}`;
+              else if (isYesterday) timeStr = `Yesterday, ${timePart}`;
+              else timeStr = `${runDate.getDate()} ${runDate.toLocaleString('default', { month: 'short' })}, ${timePart}`;
+            } else {
+              timeStr = "Logged Run";
+            }
+
+            return `
+              <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800/80 flex items-center justify-between text-xs transition">
+                <div class="flex items-center space-x-2.5">
+                  <div class="w-8 h-8 rounded-xl bg-slate-800 flex items-center justify-center flex-shrink-0 border border-slate-700">
+                    <i data-lucide="${stopBadge.icon}" class="w-4 h-4 text-sky-400"></i>
+                  </div>
+                  <div>
+                    <div class="font-bold text-white flex items-center gap-1.5">
+                      <span>${timeStr}</span>
+                      <span class="text-[10px] text-emerald-400 font-mono font-bold">(${durationMin} min)</span>
+                    </div>
+                    <div class="flex items-center gap-1 mt-1 text-[10px]">
+                      <span class="px-1.5 py-0.2 rounded border ${startBadge.cls} flex items-center gap-1">
+                        <i data-lucide="${startBadge.icon}" class="w-2.5 h-2.5"></i> ${startBadge.text}
+                      </span>
+                      <span class="text-slate-500">&rarr;</span>
+                      <span class="px-1.5 py-0.2 rounded border ${stopBadge.cls} flex items-center gap-1">
+                        <i data-lucide="${stopBadge.icon}" class="w-2.5 h-2.5"></i> ${stopBadge.text}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join("");
+        }
+        lucide.createIcons();
+      }
     }
 
     // -------------------------------------------------------------------------
@@ -1564,10 +1940,17 @@
       if (devices.length === 0) {
         container.innerHTML = "";
         emptyState.classList.remove("hidden");
+        const histSec = document.getElementById("weeklyHistorySection");
+        if (histSec) histSec.classList.add("hidden");
         return;
       }
 
       emptyState.classList.add("hidden");
+      const histSec = document.getElementById("weeklyHistorySection");
+      if (histSec) {
+        histSec.classList.remove("hidden");
+        renderWeeklyHistory();
+      }
 
       container.innerHTML = devices.map(dev => {
         const preset = getDevicePresets(dev.id);

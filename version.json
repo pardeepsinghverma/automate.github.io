@@ -1,10 +1,16 @@
 {
-  "version": "2.6.0",
-  "build": 260,
+  "version": "2.7.0",
+  "build": 270,
   "release_date": "2026-11-03",
   "url": "https://raw.githubusercontent.com/pardeepsinghverma/automate.github.io/main/firmware.bin",
-  "release_notes": "Autonomous Over-The-Air GitHub firmware updates, Morning water schedule timer, 60m safety lock, and multilingual dashboard.",
+  "release_notes": "Persistent Non-Volatile Run Cycle Logging in EEPROM (Start/Stop triggers, duration, timestamps) with 50-year zero flash wear, MQTT cycle telemetry, and weekly usage analytics.",
   "changelog": [
+    {
+      "version": "2.7.0",
+      "build": 270,
+      "date": "2026-11-03",
+      "notes": "Added persistent non-volatile run cycle logging in EEPROM (Start/Stop triggers, duration, timestamps) with zero flash wear, MQTT cycle telemetry, and weekly usage analytics."
+    },
     {
       "version": "2.6.0",
       "build": 260,
