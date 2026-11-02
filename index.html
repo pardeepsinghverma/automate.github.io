@@ -26,6 +26,8 @@
     html {
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
+      overflow-x: hidden;
+      max-width: 100vw;
     }
 
     body {
@@ -34,6 +36,18 @@
       user-select: none;
       -webkit-user-select: none;
       padding-bottom: env(safe-area-inset-bottom, 20px);
+      overflow-x: hidden;
+      max-width: 100vw;
+      width: 100%;
+    }
+
+    #tourSpotlightRing {
+      position: fixed;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85), 0 0 35px rgba(56, 189, 248, 0.85);
+      border: 3.5px solid #38bdf8;
+      z-index: 55;
+      pointer-events: none;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .glass-card {
@@ -88,42 +102,41 @@
       </div>
 
       <!-- Action Buttons (Install, Language, Help Tour, Sound, Add) -->
-      <div class="flex items-center space-x-1.5">
-        <!-- Permanent Install App Button -->
+      <div class="flex items-center space-x-1.5 flex-shrink-0">
+        <!-- Permanent Install App Button (Compact Icon on Navbar) -->
         <button id="btnNavInstall" onclick="triggerPwaInstall()"
-          class="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 active:scale-95 text-white text-xs font-bold transition shadow-md shadow-emerald-600/30"
+          class="w-8 h-8 rounded-xl bg-emerald-500/15 active:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 flex items-center justify-center transition shadow-sm"
           title="Install App on Phone">
-          <i data-lucide="download" class="w-3.5 h-3.5"></i>
-          <span data-i18n="install_app">Install App</span>
+          <i data-lucide="download" class="w-4 h-4"></i>
         </button>
 
-        <!-- Language Selector Pill -->
+        <!-- Compact Language Selector Pill -->
         <button onclick="openModal('modalLanguage')"
-          class="flex items-center space-x-1 px-2 py-1.5 rounded-xl bg-slate-800/80 active:bg-slate-700 text-slate-200 border border-slate-700/80 text-xs font-bold transition shadow-sm"
+          class="h-8 px-2 rounded-xl bg-slate-800/90 active:bg-slate-700 text-slate-200 border border-slate-700/80 text-xs font-bold transition flex items-center space-x-1 shadow-sm"
           title="Change Language">
           <i data-lucide="globe" class="w-3.5 h-3.5 text-sky-400"></i>
-          <span id="currentLangLabel">English</span>
+          <span id="currentLangLabel" class="text-[11px] font-black uppercase">EN</span>
         </button>
 
         <!-- Interactive Visual Help / Guided Tour Button -->
-        <button onclick="startInteractiveTour()"
-          class="p-2 rounded-xl bg-sky-500/10 active:bg-sky-500/20 text-sky-400 border border-sky-500/20 transition"
+        <button onclick="startInteractiveTour(0)"
+          class="w-8 h-8 rounded-xl bg-sky-500/10 active:bg-sky-500/20 text-sky-400 border border-sky-500/20 flex items-center justify-center transition"
           title="How It Works (Interactive Tour)">
           <i data-lucide="help-circle" class="w-4 h-4"></i>
         </button>
 
         <!-- Sound Toggle -->
         <button id="btnSound" onclick="toggleSound()"
-          class="p-2 rounded-xl bg-slate-800/80 active:bg-slate-700 text-slate-300 hover:text-white transition"
+          class="w-8 h-8 rounded-xl bg-slate-800/80 active:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition"
           title="Toggle Sound">
           <i data-lucide="volume-2" class="w-4 h-4" id="iconSound"></i>
         </button>
 
-        <!-- Add Device -->
+        <!-- Add Device Button -->
         <button onclick="openModal('modalAddDevice')"
-          class="flex items-center space-x-1 px-2 py-1.5 rounded-xl bg-sky-600 active:bg-sky-500 text-white font-bold text-xs transition shadow-md shadow-sky-600/30">
-          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-          <span data-i18n="add">Add</span>
+          class="w-8 h-8 rounded-xl bg-sky-600 active:bg-sky-500 text-white flex items-center justify-center transition shadow-md shadow-sky-600/30"
+          title="Add Device">
+          <i data-lucide="plus" class="w-4 h-4"></i>
         </button>
       </div>
 
@@ -230,11 +243,11 @@
   <!-- NATIVE INTERACTIVE FEATURE TOUR / COACH MARKS OVERLAY                     -->
   <!-- ========================================================================= -->
   <div id="interactiveTourOverlay" class="fixed inset-0 z-50 pointer-events-none hidden transition-opacity duration-300">
-    <!-- Dim Backdrop -->
-    <div class="absolute inset-0 bg-black/85 pointer-events-auto" onclick="closeInteractiveTour()"></div>
+    <!-- Click backdrop outside to close -->
+    <div class="fixed inset-0 pointer-events-auto" onclick="closeInteractiveTour()"></div>
 
-    <!-- Glowing Animated Spotlight Box (Positions around the real UI element) -->
-    <div id="tourSpotlightRing" class="absolute pointer-events-none rounded-3xl transition-all duration-300 ring-4 ring-sky-400 ring-offset-4 ring-offset-slate-950 shadow-[0_0_50px_rgba(56,189,248,0.6)]"></div>
+    <!-- Glowing Animated Spotlight Box (with 9999px infinite dark veil cutout) -->
+    <div id="tourSpotlightRing" class="hidden"></div>
 
     <!-- Floating Coach Card with Non-Technical Language -->
     <div id="tourCoachCard" class="fixed z-50 pointer-events-auto left-4 right-4 max-w-sm mx-auto bottom-6 glass-card rounded-3xl p-5 border border-sky-400/60 shadow-2xl transition-all duration-300">
@@ -939,10 +952,11 @@
         }
       });
 
-      // Update current label in header
+      // Update current label in header (compact short code)
       const langLabel = document.getElementById("currentLangLabel");
       if (langLabel) {
-        langLabel.innerText = I18N[currentLang].label;
+        const shortCodes = { en: "EN", hi: "हिं", hinglish: "HING", pa: "ਪੰ" };
+        langLabel.innerText = shortCodes[currentLang] || "EN";
       }
 
       // Update all static data-i18n tags
@@ -1026,6 +1040,46 @@
       triggerHaptic("stop");
     }
 
+    function updateSpotlightPosition(targetEl) {
+      const ring = document.getElementById("tourSpotlightRing");
+      const card = document.getElementById("tourCoachCard");
+      if (!targetEl || !ring || !card) return;
+
+      const rect = targetEl.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) return;
+
+      const pad = 6;
+      ring.classList.remove("hidden");
+      // Pixel-perfect fixed viewport coordinates (NO scrollY!)
+      ring.style.top = `${Math.round(rect.top - pad)}px`;
+      ring.style.left = `${Math.round(rect.left - pad)}px`;
+      ring.style.width = `${Math.round(rect.width + pad * 2)}px`;
+      ring.style.height = `${Math.round(rect.height + pad * 2)}px`;
+
+      // Match border radius: circular button -> circular spotlight!
+      const isCircle = Math.abs(rect.width - rect.height) < 10 && rect.width > 80;
+      if (isCircle) {
+        ring.style.borderRadius = "9999px";
+      } else {
+        const compRadius = window.getComputedStyle(targetEl).borderRadius;
+        ring.style.borderRadius = compRadius || "20px";
+      }
+
+      // Position Coach Card:
+      // If target element center is below screen midpoint, place coach card near top (below header)
+      // Otherwise place coach card at bottom
+      const targetCenterY = rect.top + rect.height / 2;
+      const isBottomHalf = targetCenterY > (window.innerHeight * 0.48);
+
+      if (isBottomHalf) {
+        card.style.bottom = "auto";
+        card.style.top = "68px";
+      } else {
+        card.style.top = "auto";
+        card.style.bottom = "20px";
+      }
+    }
+
     function renderTourStep() {
       const step = TOUR_STEPS[tourStep];
       const badge = document.getElementById("tourStepBadge");
@@ -1037,7 +1091,6 @@
       const nextBtn = document.getElementById("tourBtnNext");
       const dots = document.getElementById("tourDots");
       const ring = document.getElementById("tourSpotlightRing");
-      const card = document.getElementById("tourCoachCard");
 
       if (badge) badge.innerText = (t("tour_step_counter") || "Step {step} of 4").replace("{step}", tourStep + 1);
       if (iconWrap) iconWrap.className = `w-12 h-12 rounded-2xl bg-gradient-to-tr ${step.color} flex items-center justify-center text-white shadow-lg flex-shrink-0`;
@@ -1066,27 +1119,14 @@
         }
       }
 
-      // Position spotlight around target element
+      // Smooth scroll target into center, then lock position
       const targetEl = step.targetSelector ? step.targetSelector() : null;
-      if (targetEl && ring && card) {
-        const rect = targetEl.getBoundingClientRect();
-        ring.classList.remove("hidden");
-        const pad = 8;
-        ring.style.top = `${rect.top + window.scrollY - pad}px`;
-        ring.style.left = `${rect.left + window.scrollX - pad}px`;
-        ring.style.width = `${rect.width + pad * 2}px`;
-        ring.style.height = `${rect.height + pad * 2}px`;
-
-        const isNearBottom = rect.top > (window.innerHeight * 0.55);
-        if (isNearBottom) {
-          card.style.bottom = "auto";
-          card.style.top = "20px";
-        } else {
-          card.style.top = "auto";
-          card.style.bottom = "24px";
-        }
-
+      if (targetEl) {
         targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        updateSpotlightPosition(targetEl);
+        setTimeout(() => updateSpotlightPosition(targetEl), 100);
+        setTimeout(() => updateSpotlightPosition(targetEl), 250);
+        setTimeout(() => updateSpotlightPosition(targetEl), 450);
       } else if (ring) {
         ring.classList.add("hidden");
       }
@@ -1111,6 +1151,25 @@
         triggerHaptic("click");
       }
     }
+
+    // Keep spotlight locked even during user touch scroll or window resize
+    window.addEventListener("scroll", () => {
+      const overlay = document.getElementById("interactiveTourOverlay");
+      if (overlay && !overlay.classList.contains("hidden")) {
+        const step = TOUR_STEPS[tourStep];
+        const targetEl = step ? step.targetSelector() : null;
+        if (targetEl) updateSpotlightPosition(targetEl);
+      }
+    }, { passive: true });
+
+    window.addEventListener("resize", () => {
+      const overlay = document.getElementById("interactiveTourOverlay");
+      if (overlay && !overlay.classList.contains("hidden")) {
+        const step = TOUR_STEPS[tourStep];
+        const targetEl = step ? step.targetSelector() : null;
+        if (targetEl) updateSpotlightPosition(targetEl);
+      }
+    }, { passive: true });
 
     // -------------------------------------------------------------------------
     // Permanent PWA Install Engine
