@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SmartTank Cloud | Ultra-Fast Real-Time IoT Dashboard</title>
+  <meta name="theme-color" content="#090d16">
+  <meta name="description" content="Sub-30ms Smart Water Tank Automation and Live Event Logging">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- MQTT.js over WebSockets -->
+  <script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
+  <!-- QRCode.js for generating box labels -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background-color: #090d16;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .glass-card {
+      background: rgba(19, 27, 46, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .terminal-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .terminal-scroll::-webkit-scrollbar-track {
+      background: #0a0f1d;
+    }
+
+    .terminal-scroll::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+
+    .terminal-scroll::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
+</head>
+
+<body class="text-slate-100 min-h-screen flex flex-col justify-between selection:bg-sky-500 selection:text-white">
+
+  <!-- Top Navigation -->
+  <header class="border-b border-slate-800/80 bg-slate-950/60 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div
+          class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-blue-500 flex items-center justify-center shadow-lg shadow-sky-500/20">
+          <i data-lucide="droplet" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
+            SmartTank <span
+              class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ULTRA-FAST</span>
+          </h1>
+          <p class="text-xs text-slate-400">Zero-Lag Real-Time Architecture</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button id="btnSound" onclick="toggleSound()"
+          class="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+          title="Toggle Audio Chimes">
+          <i data-lucide="volume-2" class="w-5 h-5" id="iconSound"></i>
+        </button>
+        <button onclick="openModal('modalAddDevice')"
+          class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition shadow-md shadow-sky-600/20">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Add Device</span>
+        </button>
+        <button onclick="openModal('modalQrTool')"
+          class="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+          title="Packaging QR Generator">
+          <i data-lucide="qr-code" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Body Content -->
+  <main class="max-w-4xl mx-auto px-4 py-6 w-full flex-1 space-y-6">
+
+    <!-- Cloud Gateway Status Banner -->
+    <div
+      class="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400">
+      <div class="flex items-center space-x-2.5">
+        <span id="mqttDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+        <span id="mqttStatusText" class="font-medium">Connecting to Cloud Gateway...</span>
+        <span id="latencyBadge"
+          class="hidden px-2 py-0.5 rounded-md bg-slate-800 text-[10px] text-emerald-400 font-mono">18ms</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-slate-500">Auto-Refresh: <b class="text-slate-300">Active</b></span>
+      </div>
+    </div>
+
+    <!-- Active Devices Container -->
+    <div id="deviceContainer" class="space-y-6">
+      <!-- Injected device cards -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden text-center py-16 px-4">
+      <div
+        class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-800/50 flex items-center justify-center text-slate-500 border border-slate-700">
+        <i data-lucide="radio" class="w-8 h-8"></i>
+      </div>
+      <h3 class="text-lg font-bold text-white mb-1">No Devices Paired Yet</h3>
+      <p class="text-sm text-slate-400 max-w-sm mx-auto mb-6">Plug your SmartTank module into power, connect to its
+        setup hotspot, and add your device here to control it.</p>
+      <button onclick="openModal('modalAddDevice')"
+        class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-medium text-sm transition">
+        Pair Your First Device
+      </button>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- REAL-TIME LIVE ACTIVITY & TELEMETRY CONSOLE                            -->
+    <!-- ======================================================================= -->
+    <div class="glass-card rounded-2xl p-5 border border-slate-800">
+      <div class="flex items-center justify-between mb-3 border-b border-slate-800/80 pb-3">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="terminal" class="w-4 h-4 text-sky-400"></i>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Live Activity & Event Logger</h3>
+          <span id="logCountBadge"
+            class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20">0
+            Events</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="clearLogs()"
+            class="text-[11px] text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-slate-800 transition">
+            Clear Logs
+          </button>
+        </div>
+      </div>
+
+      <!-- Scrollable Log Terminal -->
+      <div id="logTerminal"
+        class="h-44 overflow-y-auto terminal-scroll bg-[#060a12] rounded-xl p-3 font-mono text-xs space-y-1.5 border border-slate-900">
+        <!-- Log entries appear here in real-time -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/60 py-4 text-center text-xs text-slate-500">
+    Commercial Smart Home Ecosystem • Stage 1 Water Automation • Sub-30ms Latency
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: ADD / PAIR DEVICE                                                  -->
+  <!-- ========================================================================= -->
+  <div id="modalAddDevice"
+    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-card rounded-2xl w-full max-w-md p-6 border border-slate-700">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="cpu" class="w-5 h-5 text-sky-400"></i> Pair New Device
+        </h3>
+        <button onclick="closeModal('modalAddDevice')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-400 mb-4">Enter the Device ID and Secret Pairing Key found on the bottom of your
+        product box or in the setup hotspot.</p>
+
+      <form id="formAddDevice" onsubmit="handleDevicePairing(event)">
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Device ID</label>
+            <input type="text" id="inputDevId" placeholder="e.g. TANK-C6EAD0" required
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-sky-500 focus:outline-none uppercase">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Pairing Secret Key</label>
+            <input type="text" id="inputDevKey" placeholder="e.g. PASS99" required
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-sky-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Custom Name</label>
+            <input type="text" id="inputDevName" value="Roof Tank Motor" required
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-sky-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="mt-6 flex space-x-2">
+          <button type="button" onclick="closeModal('modalAddDevice')"
+            class="flex-1 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium">Cancel</button>
+          <button type="submit"
+            class="flex-1 py-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-sm font-semibold shadow-lg shadow-sky-600/30">Claim
+            Device</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: PACKAGING QR GENERATOR (FOR MANUFACTURER / SELLER)                 -->
+  <!-- ========================================================================= -->
+  <div id="modalQrTool"
+    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-card rounded-2xl w-full max-w-md p-6 border border-slate-700">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="printer" class="w-5 h-5 text-emerald-400"></i> Box Sticker Generator
+        </h3>
+        <button onclick="closeModal('modalQrTool')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-400 mb-3">Generate printable pairing labels for your hardware packaging.</p>
+
+      <div class="space-y-2 mb-4">
+        <input type="text" id="qrDevId" placeholder="Device ID (e.g. TANK-C6EAD0)" value="TANK-C6EAD0"
+          class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white">
+        <input type="text" id="qrDevKey" placeholder="Secret Key (e.g. PASS99)" value="PASS99"
+          class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white">
+        <button onclick="generateBoxQR()"
+          class="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase">Generate
+          Sticker</button>
+      </div>
+
+      <div id="qrPrintArea" class="bg-white p-4 rounded-xl text-slate-900 text-center hidden">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Smart Water Controller</div>
+        <div id="qrCanvas" class="flex justify-center my-2"></div>
+        <div class="text-sm font-black" id="qrLabelId">TANK-C6EAD0</div>
+        <div class="text-[10px] text-slate-600">Scan QR with phone camera to pair immediately.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT APPLICATION CORE (ULTRA-FAST & LIVE LOGGING)                   -->
+  <!-- ========================================================================= -->
+  <script>
+    const MQTT_WS_URL = "wss://broker.hivemq.com:8884/mqtt";
+    let mqttClient = null;
+
+    let devices = JSON.parse(localStorage.getItem("smarttank_devices") || "[]");
+    let deviceStates = {};
+    let soundEnabled = true;
+    let logCounter = 0;
+
+    const DEVICE_OFFLINE_TIMEOUT_MS = 20000;
+
+    // Web Audio Synthesizer for tactile audio chimes
+    let audioCtx = null;
+    function playBeep(freq = 600, duration = 0.08, type = "sine") {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) { }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById("iconSound").setAttribute("data-lucide", soundEnabled ? "volume-2" : "volume-x");
+      lucide.createIcons();
+      appendLog("SYSTEM", `Audio chimes ${soundEnabled ? 'enabled' : 'muted'}.`, "slate");
+    }
+
+    // -------------------------------------------------------------------------
+    // Logging Console Helper
+    // -------------------------------------------------------------------------
+    function appendLog(category, message, color = "sky") {
+      const terminal = document.getElementById("logTerminal");
+      const timeStr = new Date().toLocaleTimeString();
+      logCounter++;
+      document.getElementById("logCountBadge").innerText = `${logCounter} Events`;
+
+      const colorMap = {
+        emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+        rose: "text-rose-400 bg-rose-500/10 border-rose-500/20",
+        amber: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+        sky: "text-sky-400 bg-sky-500/10 border-sky-500/20",
+        slate: "text-slate-400 bg-slate-500/10 border-slate-500/20"
+      };
+
+      const badgeClass = colorMap[color] || colorMap.sky;
+
+      const logRow = document.createElement("div");
+      logRow.className = "flex items-start space-x-2 leading-relaxed animate-fadeIn";
+      logRow.innerHTML = `
+        <span class="text-slate-500 select-none">[${timeStr}]</span>
+        <span class="px-1.5 py-0.2 rounded border text-[10px] font-bold uppercase ${badgeClass}">${category}</span>
+        <span class="text-slate-300 flex-1">${message}</span>
+      `;
+
+      terminal.appendChild(logRow);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function clearLogs() {
+      document.getElementById("logTerminal").innerHTML = "";
+      logCounter = 0;
+      document.getElementById("logCountBadge").innerText = "0 Events";
+      appendLog("SYSTEM", "Log buffer cleared.", "slate");
+    }
+
+    // -------------------------------------------------------------------------
+    // Initialization
+    // -------------------------------------------------------------------------
+    window.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      checkUrlParamsForPairing();
+
+      if (devices.length === 0) {
+        devices.push({ id: "TANK-C6EAD0", name: "Roof Tank Motor", key: "PASS99" });
+        saveDevices();
+      }
+
+      appendLog("SYSTEM", "SmartTank Cloud Dashboard initialized.", "sky");
+      buildDeviceDOM();
+      initMQTT();
+
+      // Frequent fast presence watchdog (every 1.5s)
+      setInterval(() => {
+        updatePresenceDOM();
+      }, 1500);
+    });
+
+    function checkUrlParamsForPairing() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pairId = urlParams.get("pair") || urlParams.get("id");
+      const pairKey = urlParams.get("key");
+
+      if (pairId && pairKey) {
+        document.getElementById("inputDevId").value = pairId.toUpperCase();
+        document.getElementById("inputDevKey").value = pairKey;
+        openModal("modalAddDevice");
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // MQTT Engine (WebSockets + Sub-30ms Fast Path)
+    // -------------------------------------------------------------------------
+    function initMQTT() {
+      const clientId = "web-client-" + Math.random().toString(16).substring(2, 10);
+      mqttClient = mqtt.connect(MQTT_WS_URL, {
+        clientId: clientId,
+        clean: true,
+        reconnectPeriod: 2000,
+        connectTimeout: 5000
+      });
+
+      mqttClient.on("connect", () => {
+        document.getElementById("mqttDot").className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+        document.getElementById("mqttStatusText").innerText = "Cloud Gateway Connected (Live)";
+        appendLog("NETWORK", "Connected to HiveMQ Cloud Gateway via WebSockets.", "emerald");
+        playBeep(880, 0.05);
+        subscribeToDevices();
+      });
+
+      mqttClient.on("offline", () => {
+        document.getElementById("mqttDot").className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse";
+        document.getElementById("mqttStatusText").innerText = "Reconnecting to Cloud Gateway...";
+        appendLog("NETWORK", "Lost connection to Cloud Gateway. Reconnecting...", "rose");
+      });
+
+      mqttClient.on("message", (topic, message) => {
+        try {
+          const payload = JSON.parse(message.toString());
+          handleIncomingMqttMessage(topic, payload);
+        } catch (e) {
+          console.error("Message error:", e);
+        }
+      });
+    }
+
+    function subscribeToDevices() {
+      if (!mqttClient || !mqttClient.connected) return;
+      devices.forEach(dev => {
+        mqttClient.subscribe(`smarttank/${dev.id}/status`);
+        mqttClient.subscribe(`smarttank/${dev.id}/state`);
+        mqttClient.subscribe(`smarttank/${dev.id}/alert`);
+        appendLog("DEVICE", `Subscribed to real-time telemetry for [${dev.id}]`, "slate");
+      });
+    }
+
+    function handleIncomingMqttMessage(topic, data) {
+      const parts = topic.split("/");
+      const devId = parts[1];
+      const type = parts[2];
+
+      if (type === "status") {
+        const isOnline = data.online === 1;
+        deviceStates[devId] = {
+          ...deviceStates[devId],
+          online: isOnline,
+          lastSeen: isOnline ? Date.now() : 0
+        };
+        appendLog("STATUS", `Device [${devId}] published status: ${isOnline ? '🟢 ONLINE' : '🔴 OFFLINE'}`, isOnline ? 'emerald' : 'rose');
+        if (!isOnline) playBeep(280, 0.2, "sawtooth");
+        updatePresenceDOM();
+      }
+      else if (type === "state") {
+        const wasOnline = deviceStates[devId]?.online === true;
+        deviceStates[devId] = {
+          ...deviceStates[devId],
+          ...data,
+          online: true,
+          lastSeen: Date.now()
+        };
+
+        if (!wasOnline) {
+          appendLog("DEVICE", `Device [${devId}] connected and active.`, "emerald");
+          playBeep(980, 0.1);
+        }
+
+        // Fast update existing DOM elements without re-creating DOM
+        updateDeviceStateDOM(devId, data);
+        updatePresenceDOM();
+      }
+      else if (type === "alert") {
+        appendLog("ALERT", `🚨 [${data.type}] ${data.msg}`, "amber");
+        playBeep(650, 0.25, "triangle");
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // DOM Architecture: Build Once, Update Selectively (Zero Thrashing)
+    // -------------------------------------------------------------------------
+    function buildDeviceDOM() {
+      const container = document.getElementById("deviceContainer");
+      const emptyState = document.getElementById("emptyState");
+
+      if (devices.length === 0) {
+        container.innerHTML = "";
+        emptyState.classList.remove("hidden");
+        return;
+      }
+
+      emptyState.classList.add("hidden");
+
+      container.innerHTML = devices.map(dev => `
+        <div class="glass-card rounded-2xl p-6 border transition relative overflow-hidden" id="card-${dev.id}">
+          <div id="bar-${dev.id}" class="absolute top-0 left-0 right-0 h-1.5 bg-slate-700 transition-colors duration-300"></div>
+
+          <div class="flex items-start justify-between mb-6">
+            <div>
+              <div class="flex items-center space-x-2">
+                <h2 class="text-lg font-bold text-white">${dev.name}</h2>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700 uppercase">${dev.id}</span>
+                <span id="badge-${dev.id}" class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                  <span class="w-2 h-2 rounded-full bg-rose-500"></span> OFFLINE
+                </span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1" id="subtext-${dev.id}">
+                Connecting to hardware...
+              </p>
+            </div>
+
+            <a href="https://t.me/YourSmartTankBot?start=${dev.id}" target="_blank" class="flex items-center space-x-1.5 text-xs text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 px-2.5 py-1.5 rounded-lg border border-sky-500/20 transition">
+              <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              <span>Telegram Bot</span>
+            </a>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            
+            <!-- Tank Level -->
+            <div id="tankBox-${dev.id}" class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center space-x-4 transition">
+              <div id="tankIconWrap-${dev.id}" class="w-12 h-12 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center transition">
+                <i data-lucide="waves" class="w-6 h-6" id="tankIcon-${dev.id}"></i>
+              </div>
+              <div>
+                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Water Tank Level</div>
+                <div class="text-base font-bold text-slate-200" id="tankText-${dev.id}">
+                  Checking sensor...
+                </div>
+              </div>
+            </div>
+
+            <!-- Motor Switch -->
+            <div id="motorBox-${dev.id}" class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between transition">
+              <div>
+                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Motor State</div>
+                <div class="text-base font-bold text-slate-400" id="motorStateText-${dev.id}">
+                  ⚪ DISCONNECTED
+                </div>
+              </div>
+
+              <button id="btnAction-${dev.id}" onclick="triggerMotorToggle('${dev.id}')" disabled 
+                      class="px-6 py-3 rounded-xl font-bold text-sm transition transform active:scale-95 bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50">
+                DEVICE OFFLINE
+              </button>
+            </div>
+
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-500">
+            <span id="footerInfo-${dev.id}">Power disconnected</span>
+            <button onclick="removeDevice('${dev.id}')" class="text-rose-400 hover:underline">Remove Device</button>
+          </div>
+        </div>
+      `).join("");
+
+      lucide.createIcons();
+      updatePresenceDOM();
+    }
+
+    // Update Live State without re-rendering the whole page
+    function updateDeviceStateDOM(devId, data) {
+      const isRunning = data.relay === 1;
+      const isFull = data.tankFull === 1;
+
+      const motorText = document.getElementById(`motorStateText-${devId}`);
+      const btn = document.getElementById(`btnAction-${devId}`);
+      const bar = document.getElementById(`bar-${devId}`);
+      const tankText = document.getElementById(`tankText-${devId}`);
+      const tankWrap = document.getElementById(`tankIconWrap-${devId}`);
+
+      if (motorText) {
+        motorText.className = `text-base font-bold ${isRunning ? 'text-emerald-400' : 'text-slate-300'}`;
+        motorText.innerText = isRunning ? "🟢 RUNNING" : "⚪ STOPPED";
+      }
+
+      if (bar) {
+        bar.className = `absolute top-0 left-0 right-0 h-1.5 transition-colors duration-300 ${isRunning ? 'bg-emerald-500' : 'bg-slate-700'}`;
+      }
+
+      if (btn) {
+        btn.disabled = false;
+        btn.className = `px-6 py-3 rounded-xl font-bold text-sm transition transform active:scale-95 shadow-lg ${isRunning ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/30' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30'}`;
+        btn.innerText = isRunning ? "STOP MOTOR" : "START MOTOR";
+      }
+
+      if (tankText) {
+        tankText.className = `text-base font-bold ${isFull ? 'text-sky-400' : 'text-slate-200'}`;
+        tankText.innerText = isFull ? "100% FULL (Auto-Cut)" : "Normal / Refill Ready";
+      }
+
+      if (tankWrap) {
+        tankWrap.className = `w-12 h-12 rounded-xl flex items-center justify-center transition ${isFull ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' : 'bg-slate-800 text-slate-400'}`;
+      }
+
+      const footer = document.getElementById(`footerInfo-${devId}`);
+      if (footer) {
+        const ramStr = data.freeRam ? ` • RAM: ${data.freeRam}KB Free` : "";
+        footer.innerText = `Active Run: ${data.runTime || 0}s • Uptime: ${Math.floor((data.uptime || 0) / 60)}m${ramStr}`;
+      }
+    }
+
+    // Update Online / Offline Presence Indicators
+    function updatePresenceDOM() {
+      const now = Date.now();
+
+      devices.forEach(dev => {
+        const state = deviceStates[dev.id] || { online: false, lastSeen: 0, rssi: null };
+        const isOnline = state.online === true && (now - (state.lastSeen || 0) < DEVICE_OFFLINE_TIMEOUT_MS);
+
+        const card = document.getElementById(`card-${dev.id}`);
+        const badge = document.getElementById(`badge-${dev.id}`);
+        const subtext = document.getElementById(`subtext-${dev.id}`);
+        const btn = document.getElementById(`btnAction-${dev.id}`);
+
+        if (!badge) return;
+
+        if (isOnline) {
+          badge.className = "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+          badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ONLINE';
+
+          if (subtext) subtext.innerHTML = `WiFi Signal: <b class="text-slate-200">${state.rssi || -60} dBm</b> • Ultra-Fast Link Active`;
+        } else {
+          badge.className = "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+          badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> OFFLINE';
+
+          if (subtext) subtext.innerHTML = '<span class="text-rose-400 font-medium">Device is Unplugged or Lost Wi-Fi</span>';
+
+          if (btn && btn.innerText !== "STARTING..." && btn.innerText !== "STOPPING...") {
+            btn.disabled = true;
+            btn.className = "px-6 py-3 rounded-xl font-bold text-xs bg-slate-800/80 text-slate-500 cursor-not-allowed border border-slate-700/50";
+            btn.innerText = "DEVICE OFFLINE";
+          }
+        }
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // Instant Optimistic Motor Toggle (Sub-30ms User Feedback)
+    // -------------------------------------------------------------------------
+    function triggerMotorToggle(devId) {
+      const state = deviceStates[devId] || { relay: 0 };
+      const currentlyRunning = state.relay === 1;
+      const targetState = currentlyRunning ? 0 : 1;
+
+      // 1. Audio Click
+      playBeep(currentlyRunning ? 440 : 880, 0.04);
+
+      // 2. Instant Optimistic Button Transition (0ms)
+      const btn = document.getElementById(`btnAction-${devId}`);
+      if (btn) {
+        btn.innerText = currentlyRunning ? "STOPPING..." : "STARTING...";
+        btn.className = "px-6 py-3 rounded-xl font-bold text-sm bg-slate-700 text-white animate-pulse";
+      }
+
+      appendLog("COMMAND", `Sent ${targetState === 1 ? 'START' : 'STOP'} command to [${devId}] via MQTT.`, "sky");
+
+      // 3. Send over MQTT Socket immediately
+      const topic = `smarttank/${devId}/cmd`;
+      const payload = JSON.stringify({ relay: targetState });
+      mqttClient.publish(topic, payload);
+    }
+
+    // -------------------------------------------------------------------------
+    // Device Pairing & Management
+    // -------------------------------------------------------------------------
+    function handleDevicePairing(e) {
+      e.preventDefault();
+      const id = document.getElementById("inputDevId").value.trim().toUpperCase();
+      const key = document.getElementById("inputDevKey").value.trim();
+      const name = document.getElementById("inputDevName").value.trim();
+
+      if (devices.some(d => d.id === id)) {
+        alert("This device is already in your dashboard!");
+        return;
+      }
+
+      devices.push({ id, key, name });
+      saveDevices();
+      buildDeviceDOM();
+      subscribeToDevices();
+      closeModal("modalAddDevice");
+      appendLog("PAIR", `Device [${id}] claimed and linked successfully!`, "emerald");
+    }
+
+    function removeDevice(devId) {
+      if (confirm(`Remove device ${devId} from your account?`)) {
+        devices = devices.filter(d => d.id !== devId);
+        saveDevices();
+        buildDeviceDOM();
+        appendLog("DEVICE", `Device [${devId}] removed from dashboard.`, "slate");
+      }
+    }
+
+    function saveDevices() {
+      localStorage.setItem("smarttank_devices", JSON.stringify(devices));
+    }
+
+    function generateBoxQR() {
+      const devId = document.getElementById("qrDevId").value.trim().toUpperCase();
+      const devKey = document.getElementById("qrDevKey").value.trim();
+      const qrArea = document.getElementById("qrPrintArea");
+      const canvas = document.getElementById("qrCanvas");
+      canvas.innerHTML = "";
+
+      const pairUrl = `${window.location.origin}${window.location.pathname}?pair=${devId}&key=${devKey}`;
+      new QRCode(canvas, {
+        text: pairUrl,
+        width: 140,
+        height: 140,
+        colorDark: "#090d16",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      document.getElementById("qrLabelId").innerText = devId;
+      qrArea.classList.remove("hidden");
+    }
+
+    function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
+    function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+  </script>
+</body>
+
+</html>
