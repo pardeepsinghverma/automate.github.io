@@ -3,10 +3,10 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SmartTank Cloud | Ultra-Fast Real-Time IoT Dashboard</title>
-  <meta name="theme-color" content="#090d16">
-  <meta name="description" content="Sub-30ms Smart Water Tank Automation and Live Event Logging">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SmartTank Pro | Mobile IoT Controller</title>
+  <meta name="theme-color" content="#070b14">
+  <meta name="description" content="Commercial IoT Water Tank Automation - Sub-30ms Real-Time Mobile Controller">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
@@ -23,19 +23,29 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
+    html {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
     body {
-      background-color: #090d16;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top, #0d1a33 0%, #070b14 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      padding-bottom: env(safe-area-inset-bottom, 20px);
     }
 
     .glass-card {
-      background: rgba(19, 27, 46, 0.85);
+      background: rgba(18, 26, 44, 0.85);
       backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.15);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
     }
 
     .terminal-scroll::-webkit-scrollbar {
-      width: 6px;
+      width: 4px;
     }
 
     .terminal-scroll::-webkit-scrollbar-track {
@@ -47,208 +57,211 @@
       border-radius: 4px;
     }
 
-    .terminal-scroll::-webkit-scrollbar-thumb:hover {
-      background: #334155;
+    @keyframes pulse-slow {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.03); opacity: 0.92; }
+    }
+    .motor-running-anim {
+      animation: pulse-slow 2s infinite ease-in-out;
     }
   </style>
 </head>
 
 <body class="text-slate-100 min-h-screen flex flex-col justify-between selection:bg-sky-500 selection:text-white">
 
-  <!-- Top Navigation -->
-  <header class="border-b border-slate-800/80 bg-slate-950/60 sticky top-0 z-40 backdrop-blur-md">
-    <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div
-          class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-blue-500 flex items-center justify-center shadow-lg shadow-sky-500/20">
-          <i data-lucide="droplet" class="w-6 h-6 text-white"></i>
+  <!-- Mobile-Optimized Sticky Top Navigation -->
+  <header class="border-b border-slate-800/80 bg-slate-950/80 sticky top-0 z-40 backdrop-blur-lg">
+    <div class="max-w-md mx-auto px-4 h-15 py-3 flex items-center justify-between">
+      
+      <!-- Brand Logo & Title -->
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-blue-500 flex items-center justify-center shadow-lg shadow-sky-500/20">
+          <i data-lucide="droplet" class="w-5 h-5 text-white"></i>
         </div>
         <div>
-          <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
-            SmartTank <span
-              class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ULTRA-FAST</span>
+          <h1 class="text-base font-extrabold tracking-tight text-white flex items-center gap-1.5 leading-none">
+            Smart<span class="text-sky-400">Tank</span>
+            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PRO</span>
           </h1>
-          <p class="text-xs text-slate-400">Zero-Lag Real-Time Architecture</p>
+          <p class="text-[10px] text-slate-400 font-medium mt-0.5">Real-Time Mobile Controller</p>
         </div>
       </div>
 
-      <div class="flex items-center space-x-2">
+      <!-- Action Buttons -->
+      <div class="flex items-center space-x-1.5">
         <button id="btnSound" onclick="toggleSound()"
-          class="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition"
-          title="Toggle Audio Chimes">
-          <i data-lucide="volume-2" class="w-5 h-5" id="iconSound"></i>
+          class="p-2 rounded-xl bg-slate-800/80 active:bg-slate-700 text-slate-300 hover:text-white transition"
+          title="Toggle Sound">
+          <i data-lucide="volume-2" class="w-4 h-4" id="iconSound"></i>
         </button>
         <button onclick="openModal('modalAddDevice')"
-          class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition shadow-md shadow-sky-600/20">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span>Add Device</span>
+          class="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-sky-600 active:bg-sky-500 text-white font-bold text-xs transition shadow-md shadow-sky-600/30">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          <span>Add</span>
         </button>
         <button onclick="openModal('modalQrTool')"
-          class="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+          class="p-2 rounded-xl bg-slate-800/80 active:bg-slate-700 text-slate-300 hover:text-white transition"
           title="Packaging QR Generator">
-          <i data-lucide="qr-code" class="w-5 h-5"></i>
+          <i data-lucide="qr-code" class="w-4 h-4"></i>
         </button>
       </div>
+
     </div>
   </header>
 
-  <!-- Main Body Content -->
-  <main class="max-w-4xl mx-auto px-4 py-6 w-full flex-1 space-y-6">
+  <!-- Main Body Content (Mobile First Container) -->
+  <main class="max-w-md mx-auto px-4 py-4 w-full flex-1 space-y-4">
 
-    <!-- Cloud Gateway Status Banner -->
-    <div
-      class="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400">
-      <div class="flex items-center space-x-2.5">
-        <span id="mqttDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-        <span id="mqttStatusText" class="font-medium">Connecting to Cloud Gateway...</span>
-        <span id="latencyBadge"
-          class="hidden px-2 py-0.5 rounded-md bg-slate-800 text-[10px] text-emerald-400 font-mono">18ms</span>
+    <!-- Compact Gateway Status Pill -->
+    <div class="flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800/80 text-[11px] text-slate-400">
+      <div class="flex items-center space-x-2">
+        <span id="mqttDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <span id="mqttStatusText" class="font-medium text-slate-300">Connecting Gateway...</span>
       </div>
-      <div class="flex items-center gap-2">
-        <span class="text-slate-500">Auto-Refresh: <b class="text-slate-300">Active</b></span>
+      <div class="flex items-center gap-1.5 text-slate-500">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+        <span>Auto-Sync</span>
       </div>
     </div>
 
     <!-- Active Devices Container -->
-    <div id="deviceContainer" class="space-y-6">
+    <div id="deviceContainer" class="space-y-4">
       <!-- Injected device cards -->
     </div>
 
     <!-- Empty State -->
-    <div id="emptyState" class="hidden text-center py-16 px-4">
-      <div
-        class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-800/50 flex items-center justify-center text-slate-500 border border-slate-700">
+    <div id="emptyState" class="hidden text-center py-12 px-4 glass-card rounded-3xl border border-slate-800">
+      <div class="w-16 h-16 mx-auto mb-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shadow-lg shadow-sky-500/10">
         <i data-lucide="radio" class="w-8 h-8"></i>
       </div>
       <h3 class="text-lg font-bold text-white mb-1">No Devices Paired Yet</h3>
-      <p class="text-sm text-slate-400 max-w-sm mx-auto mb-6">Plug your SmartTank module into power, connect to its
-        setup hotspot, and add your device here to control it.</p>
+      <p class="text-xs text-slate-400 max-w-xs mx-auto mb-5 leading-relaxed">
+        Plug your SmartTank controller into power, and scan the QR code on your product box to link it.
+      </p>
       <button onclick="openModal('modalAddDevice')"
-        class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-medium text-sm transition">
+        class="px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition shadow-lg shadow-sky-600/30">
         Pair Your First Device
       </button>
     </div>
 
-    <!-- ======================================================================= -->
-    <!-- REAL-TIME LIVE ACTIVITY & TELEMETRY CONSOLE                            -->
-    <!-- ======================================================================= -->
-    <div class="glass-card rounded-2xl p-5 border border-slate-800">
-      <div class="flex items-center justify-between mb-3 border-b border-slate-800/80 pb-3">
+    <!-- Collapsible Activity History Drawer (Optimized for Phones) -->
+    <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden">
+      <button onclick="toggleLogVisibility()" class="w-full px-4 py-3 flex items-center justify-between text-left text-xs font-bold text-slate-300 active:bg-slate-800/50 transition">
         <div class="flex items-center space-x-2">
-          <i data-lucide="terminal" class="w-4 h-4 text-sky-400"></i>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Live Activity & Event Logger</h3>
-          <span id="logCountBadge"
-            class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20">0
-            Events</span>
+          <i data-lucide="history" class="w-4 h-4 text-sky-400"></i>
+          <span>Live Activity & Events</span>
+          <span id="logCountBadge" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-sky-500/15 text-sky-400 border border-sky-500/30">0</span>
         </div>
-        <div class="flex items-center space-x-2">
-          <button onclick="clearLogs()"
-            class="text-[11px] text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-slate-800 transition">
-            Clear Logs
+        <div class="flex items-center space-x-2 text-slate-400">
+          <span id="logToggleLabel" class="text-[11px] font-normal text-slate-400">View Log</span>
+          <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200" id="logChevron"></i>
+        </div>
+      </button>
+
+      <!-- Collapsible Container (Hidden by default to save mobile screen space) -->
+      <div id="logBody" class="hidden border-t border-slate-800/80 p-3 bg-slate-950/70">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[10px] uppercase font-bold text-slate-500">Real-Time Event Stream</span>
+          <button onclick="clearLogs()" class="text-[10px] text-slate-400 hover:text-white px-2 py-0.5 rounded hover:bg-slate-800 transition">
+            Clear
           </button>
         </div>
-      </div>
-
-      <!-- Scrollable Log Terminal -->
-      <div id="logTerminal"
-        class="h-44 overflow-y-auto terminal-scroll bg-[#060a12] rounded-xl p-3 font-mono text-xs space-y-1.5 border border-slate-900">
-        <!-- Log entries appear here in real-time -->
+        <div id="logTerminal" class="h-32 overflow-y-auto terminal-scroll bg-[#060a12] rounded-xl p-2.5 font-mono text-[11px] space-y-1.5 border border-slate-900">
+          <!-- Live events streamed here -->
+        </div>
       </div>
     </div>
 
   </main>
 
-  <!-- Footer -->
-  <footer class="border-t border-slate-800/60 py-4 text-center text-xs text-slate-500">
-    Commercial Smart Home Ecosystem • Stage 1 Water Automation • Sub-30ms Latency
+  <!-- Mobile Footer -->
+  <footer class="py-3 text-center text-[10px] text-slate-500">
+    SmartTank Pro • 50-Year Zero-Maintenance Architecture
   </footer>
 
   <!-- ========================================================================= -->
   <!-- MODAL: ADD / PAIR DEVICE                                                  -->
   <!-- ========================================================================= -->
-  <div id="modalAddDevice"
-    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="glass-card rounded-2xl w-full max-w-md p-6 border border-slate-700">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-bold text-white flex items-center gap-2">
-          <i data-lucide="cpu" class="w-5 h-5 text-sky-400"></i> Pair New Device
+  <div id="modalAddDevice" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-card rounded-3xl w-full max-w-sm p-6 border border-slate-700 shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="cpu" class="w-5 h-5 text-sky-400"></i> Pair New Controller
         </h3>
-        <button onclick="closeModal('modalAddDevice')" class="text-slate-400 hover:text-white">
+        <button onclick="closeModal('modalAddDevice')" class="text-slate-400 hover:text-white p-1">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <p class="text-xs text-slate-400 mb-4">Enter the Device ID and Secret Pairing Key found on the bottom of your
-        product box or in the setup hotspot.</p>
+      <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+        Enter the Device ID and Secret Key printed on your product box sticker.
+      </p>
 
       <form id="formAddDevice" onsubmit="handleDevicePairing(event)">
         <div class="space-y-3">
           <div>
-            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Device ID</label>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Device ID</label>
             <input type="text" id="inputDevId" placeholder="e.g. TANK-C6EAD0" required
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-sky-500 focus:outline-none uppercase">
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white focus:border-sky-500 focus:outline-none uppercase font-mono">
           </div>
           <div>
-            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Pairing Secret Key</label>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pairing Secret Key</label>
             <input type="text" id="inputDevKey" placeholder="e.g. PASS99" required
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-sky-500 focus:outline-none">
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white focus:border-sky-500 focus:outline-none uppercase font-mono">
           </div>
           <div>
-            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Custom Name</label>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Device Nickname</label>
             <input type="text" id="inputDevName" value="Roof Tank Motor" required
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-sky-500 focus:outline-none">
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white focus:border-sky-500 focus:outline-none">
           </div>
-        </div>
 
-        <div class="mt-6 flex space-x-2">
-          <button type="button" onclick="closeModal('modalAddDevice')"
-            class="flex-1 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium">Cancel</button>
           <button type="submit"
-            class="flex-1 py-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-sm font-semibold shadow-lg shadow-sky-600/30">Claim
-            Device</button>
+            class="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-sm transition shadow-lg shadow-sky-600/30 mt-2">
+            Link Controller
+          </button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- ========================================================================= -->
-  <!-- MODAL: PACKAGING QR GENERATOR (FOR MANUFACTURER / SELLER)                 -->
+  <!-- MODAL: PACKAGING QR GENERATOR                                             -->
   <!-- ========================================================================= -->
-  <div id="modalQrTool"
-    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="glass-card rounded-2xl w-full max-w-md p-6 border border-slate-700">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-bold text-white flex items-center gap-2">
-          <i data-lucide="printer" class="w-5 h-5 text-emerald-400"></i> Box Sticker Generator
+  <div id="modalQrTool" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-card rounded-3xl w-full max-w-sm p-6 border border-slate-700 shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="qr-code" class="w-5 h-5 text-emerald-400"></i> Box QR Generator
         </h3>
-        <button onclick="closeModal('modalQrTool')" class="text-slate-400 hover:text-white">
+        <button onclick="closeModal('modalQrTool')" class="text-slate-400 hover:text-white p-1">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
       <p class="text-xs text-slate-400 mb-3">Generate printable pairing labels for your hardware packaging.</p>
 
-      <div class="space-y-2 mb-4">
+      <div class="space-y-2 mb-3">
         <input type="text" id="qrDevId" placeholder="Device ID (e.g. TANK-C6EAD0)" value="TANK-C6EAD0"
-          class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white">
+          class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white uppercase font-mono">
         <input type="text" id="qrDevKey" placeholder="Secret Key (e.g. PASS99)" value="PASS99"
-          class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white">
+          class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white uppercase font-mono">
         <button onclick="generateBoxQR()"
-          class="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase">Generate
-          Sticker</button>
+          class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase transition">
+          Generate QR Label
+        </button>
       </div>
 
-      <div id="qrPrintArea" class="bg-white p-4 rounded-xl text-slate-900 text-center hidden">
-        <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Smart Water Controller</div>
+      <div id="qrPrintArea" class="bg-white p-4 rounded-2xl text-slate-900 text-center hidden">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Smart Water Controller</div>
         <div id="qrCanvas" class="flex justify-center my-2"></div>
-        <div class="text-sm font-black" id="qrLabelId">TANK-C6EAD0</div>
-        <div class="text-[10px] text-slate-600">Scan QR with phone camera to pair immediately.</div>
+        <div class="text-sm font-black font-mono" id="qrLabelId">TANK-C6EAD0</div>
+        <div class="text-[10px] text-slate-600 mt-0.5">Scan with phone camera to pair immediately.</div>
       </div>
     </div>
   </div>
 
   <!-- ========================================================================= -->
-  <!-- JAVASCRIPT APPLICATION CORE (ULTRA-FAST & LIVE LOGGING)                   -->
+  <!-- APPLICATION SCRIPTS (Real-Time Sub-30ms Engine)                           -->
   <!-- ========================================================================= -->
   <script>
     const MQTT_WS_URL = "wss://broker.hivemq.com:8884/mqtt";
@@ -261,82 +274,86 @@
 
     const DEVICE_OFFLINE_TIMEOUT_MS = 20000;
 
-    // Web Audio Synthesizer for tactile audio chimes
+    // Web Audio Synthesizer
     let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
     function playBeep(freq = 600, duration = 0.08, type = "sine") {
       if (!soundEnabled) return;
       try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
         osc.type = type;
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
         osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        gain.connect(ctx.destination);
         osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-      } catch (e) { }
+        osc.stop(ctx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    // Android Native Haptic Feedback
+    function triggerHaptic(type = "click") {
+      if ("vibrate" in navigator) {
+        if (type === "start") {
+          navigator.vibrate([35, 30, 45]);
+        } else if (type === "stop") {
+          navigator.vibrate([40, 20]);
+        } else {
+          navigator.vibrate(20);
+        }
+      }
     }
 
     function toggleSound() {
       soundEnabled = !soundEnabled;
-      document.getElementById("iconSound").setAttribute("data-lucide", soundEnabled ? "volume-2" : "volume-x");
+      const icon = document.getElementById("iconSound");
+      if (soundEnabled) {
+        icon.setAttribute("data-lucide", "volume-2");
+        playBeep(880, 0.1);
+      } else {
+        icon.setAttribute("data-lucide", "volume-x");
+      }
       lucide.createIcons();
-      appendLog("SYSTEM", `Audio chimes ${soundEnabled ? 'enabled' : 'muted'}.`, "slate");
     }
 
-    // -------------------------------------------------------------------------
-    // Logging Console Helper
-    // -------------------------------------------------------------------------
-    function appendLog(category, message, color = "sky") {
-      const terminal = document.getElementById("logTerminal");
-      const timeStr = new Date().toLocaleTimeString();
-      logCounter++;
-      document.getElementById("logCountBadge").innerText = `${logCounter} Events`;
+    function toggleLogVisibility() {
+      const body = document.getElementById("logBody");
+      const chevron = document.getElementById("logChevron");
+      const label = document.getElementById("logToggleLabel");
+      const isHidden = body.classList.contains("hidden");
 
-      const colorMap = {
-        emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-        rose: "text-rose-400 bg-rose-500/10 border-rose-500/20",
-        amber: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-        sky: "text-sky-400 bg-sky-500/10 border-sky-500/20",
-        slate: "text-slate-400 bg-slate-500/10 border-slate-500/20"
-      };
-
-      const badgeClass = colorMap[color] || colorMap.sky;
-
-      const logRow = document.createElement("div");
-      logRow.className = "flex items-start space-x-2 leading-relaxed animate-fadeIn";
-      logRow.innerHTML = `
-        <span class="text-slate-500 select-none">[${timeStr}]</span>
-        <span class="px-1.5 py-0.2 rounded border text-[10px] font-bold uppercase ${badgeClass}">${category}</span>
-        <span class="text-slate-300 flex-1">${message}</span>
-      `;
-
-      terminal.appendChild(logRow);
-      terminal.scrollTop = terminal.scrollHeight;
+      if (isHidden) {
+        body.classList.remove("hidden");
+        chevron.style.transform = "rotate(180deg)";
+        label.innerText = "Hide Log";
+      } else {
+        body.classList.add("hidden");
+        chevron.style.transform = "rotate(0deg)";
+        label.innerText = "View Log";
+      }
     }
 
-    function clearLogs() {
-      document.getElementById("logTerminal").innerHTML = "";
-      logCounter = 0;
-      document.getElementById("logCountBadge").innerText = "0 Events";
-      appendLog("SYSTEM", "Log buffer cleared.", "slate");
-    }
-
-    // -------------------------------------------------------------------------
-    // Initialization
-    // -------------------------------------------------------------------------
     window.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
       checkUrlParamsForPairing();
 
-      appendLog("SYSTEM", "SmartTank Cloud Dashboard initialized.", "sky");
+      appendLog("SYSTEM", "SmartTank Mobile Engine active.", "sky");
       buildDeviceDOM();
       initMQTT();
 
-      // Frequent fast presence watchdog (every 1.5s)
+      // Fast presence watchdog (every 1.5s)
       setInterval(() => {
         updatePresenceDOM();
       }, 1500);
@@ -358,7 +375,7 @@
     // MQTT Engine (WebSockets + Sub-30ms Fast Path)
     // -------------------------------------------------------------------------
     function initMQTT() {
-      const clientId = "web-client-" + Math.random().toString(16).substring(2, 10);
+      const clientId = "tank-mobile-" + Math.random().toString(16).substring(2, 10);
       mqttClient = mqtt.connect(MQTT_WS_URL, {
         clientId: clientId,
         clean: true,
@@ -367,25 +384,28 @@
       });
 
       mqttClient.on("connect", () => {
-        document.getElementById("mqttDot").className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
-        document.getElementById("mqttStatusText").innerText = "Cloud Gateway Connected (Live)";
-        appendLog("NETWORK", "Connected to HiveMQ Cloud Gateway via WebSockets.", "emerald");
-        playBeep(880, 0.05);
+        document.getElementById("mqttDot").className = "w-2 h-2 rounded-full bg-emerald-500";
+        document.getElementById("mqttStatusText").innerText = "Cloud Gateway Live";
+        appendLog("NETWORK", "Connected to Cloud Broker via WebSockets.", "emerald");
         subscribeToDevices();
       });
 
-      mqttClient.on("offline", () => {
-        document.getElementById("mqttDot").className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse";
-        document.getElementById("mqttStatusText").innerText = "Reconnecting to Cloud Gateway...";
-        appendLog("NETWORK", "Lost connection to Cloud Gateway. Reconnecting...", "rose");
+      mqttClient.on("reconnect", () => {
+        document.getElementById("mqttDot").className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+        document.getElementById("mqttStatusText").innerText = "Reconnecting...";
+      });
+
+      mqttClient.on("close", () => {
+        document.getElementById("mqttDot").className = "w-2 h-2 rounded-full bg-rose-500";
+        document.getElementById("mqttStatusText").innerText = "Gateway Disconnected";
       });
 
       mqttClient.on("message", (topic, message) => {
         try {
           const payload = JSON.parse(message.toString());
-          handleIncomingMqttMessage(topic, payload);
+          handleIncomingMQTT(topic, payload);
         } catch (e) {
-          console.error("Message error:", e);
+          console.error("MQTT JSON parse error:", e);
         }
       });
     }
@@ -393,31 +413,30 @@
     function subscribeToDevices() {
       if (!mqttClient || !mqttClient.connected) return;
       devices.forEach(dev => {
-        mqttClient.subscribe(`smarttank/${dev.id}/status`);
         mqttClient.subscribe(`smarttank/${dev.id}/state`);
+        mqttClient.subscribe(`smarttank/${dev.id}/status`);
         mqttClient.subscribe(`smarttank/${dev.id}/alert`);
-        appendLog("DEVICE", `Subscribed to real-time telemetry for [${dev.id}]`, "slate");
       });
     }
 
-    function handleIncomingMqttMessage(topic, data) {
+    function handleIncomingMQTT(topic, data) {
       const parts = topic.split("/");
       const devId = parts[1];
       const type = parts[2];
 
+      if (!deviceStates[devId]) {
+        deviceStates[devId] = {};
+      }
+
       if (type === "status") {
         const isOnline = data.online === 1;
-        deviceStates[devId] = {
-          ...deviceStates[devId],
-          online: isOnline,
-          lastSeen: isOnline ? Date.now() : 0
-        };
-        appendLog("STATUS", `Device [${devId}] published status: ${isOnline ? '🟢 ONLINE' : '🔴 OFFLINE'}`, isOnline ? 'emerald' : 'rose');
-        if (!isOnline) playBeep(280, 0.2, "sawtooth");
+        deviceStates[devId].online = isOnline;
+        deviceStates[devId].lastSeen = Date.now();
         updatePresenceDOM();
+        appendLog("STATUS", `[${devId}] is ${isOnline ? "ONLINE" : "OFFLINE"}`, isOnline ? "emerald" : "rose");
       }
       else if (type === "state") {
-        const wasOnline = deviceStates[devId]?.online === true;
+        const wasOnline = deviceStates[devId].online;
         deviceStates[devId] = {
           ...deviceStates[devId],
           ...data,
@@ -426,22 +445,21 @@
         };
 
         if (!wasOnline) {
-          appendLog("DEVICE", `Device [${devId}] connected and active.`, "emerald");
+          appendLog("DEVICE", `[${devId}] connected and active.`, "emerald");
           playBeep(980, 0.1);
         }
 
-        // Fast update existing DOM elements without re-creating DOM
         updateDeviceStateDOM(devId, data);
         updatePresenceDOM();
       }
       else if (type === "alert") {
-        appendLog("ALERT", `🚨 [${data.type}] ${data.msg}`, "amber");
+        appendLog("ALERT", `[${data.type}] ${data.msg}`, "amber");
         playBeep(650, 0.25, "triangle");
       }
     }
 
     // -------------------------------------------------------------------------
-    // DOM Architecture: Build Once, Update Selectively (Zero Thrashing)
+    // Mobile-First Device Card Builder
     // -------------------------------------------------------------------------
     function buildDeviceDOM() {
       const container = document.getElementById("deviceContainer");
@@ -456,65 +474,72 @@
       emptyState.classList.add("hidden");
 
       container.innerHTML = devices.map(dev => `
-        <div class="glass-card rounded-2xl p-6 border transition relative overflow-hidden" id="card-${dev.id}">
+        <div class="glass-card rounded-3xl p-5 border border-slate-800/80 relative overflow-hidden shadow-2xl transition" id="card-${dev.id}">
+          <!-- Top Accent Line -->
           <div id="bar-${dev.id}" class="absolute top-0 left-0 right-0 h-1.5 bg-slate-700 transition-colors duration-300"></div>
 
-          <div class="flex items-start justify-between mb-6">
+          <!-- Card Header -->
+          <div class="flex items-center justify-between mb-4 mt-1">
             <div>
               <div class="flex items-center space-x-2">
-                <h2 class="text-lg font-bold text-white">${dev.name}</h2>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700 uppercase">${dev.id}</span>
-                <span id="badge-${dev.id}" class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                  <span class="w-2 h-2 rounded-full bg-rose-500"></span> OFFLINE
-                </span>
+                <h2 class="text-base font-extrabold text-white tracking-tight">${dev.name}</h2>
+                <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 uppercase">${dev.id}</span>
               </div>
-              <p class="text-xs text-slate-400 mt-1" id="subtext-${dev.id}">
-                Connecting to hardware...
+              <p class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5" id="subtext-${dev.id}">
+                <span>Connecting to controller...</span>
               </p>
             </div>
 
-            <a href="https://t.me/YourSmartTankBot?start=${dev.id}" target="_blank" class="flex items-center space-x-1.5 text-xs text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 px-2.5 py-1.5 rounded-lg border border-sky-500/20 transition">
-              <i data-lucide="send" class="w-3.5 h-3.5"></i>
-              <span>Telegram Bot</span>
-            </a>
+            <div class="flex items-center space-x-1.5">
+              <span id="badge-${dev.id}" class="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> OFFLINE
+              </span>
+              <a href="https://t.me/YourSmartTankBot?start=${dev.id}" target="_blank"
+                 class="p-1.5 rounded-xl bg-sky-500/10 active:bg-sky-500/20 text-sky-400 border border-sky-500/20 transition"
+                 title="Open Telegram Bot">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              </a>
+            </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-            
-            <!-- Tank Level -->
-            <div id="tankBox-${dev.id}" class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center space-x-4 transition">
-              <div id="tankIconWrap-${dev.id}" class="w-12 h-12 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center transition">
-                <i data-lucide="waves" class="w-6 h-6" id="tankIcon-${dev.id}"></i>
+          <!-- Water Tank Level Card -->
+          <div id="tankBox-${dev.id}" class="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between transition mb-4">
+            <div class="flex items-center space-x-3">
+              <div id="tankIconWrap-${dev.id}" class="w-10 h-10 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center transition">
+                <i data-lucide="waves" class="w-5 h-5" id="tankIcon-${dev.id}"></i>
               </div>
               <div>
-                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Water Tank Level</div>
-                <div class="text-base font-bold text-slate-200" id="tankText-${dev.id}">
-                  Checking sensor...
-                </div>
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Overhead Tank</div>
+                <div class="text-sm font-bold text-slate-200" id="tankText-${dev.id}">Checking water sensor...</div>
               </div>
             </div>
-
-            <!-- Motor Switch -->
-            <div id="motorBox-${dev.id}" class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between transition">
-              <div>
-                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Motor State</div>
-                <div class="text-base font-bold text-slate-400" id="motorStateText-${dev.id}">
-                  ⚪ DISCONNECTED
-                </div>
-              </div>
-
-              <button id="btnAction-${dev.id}" onclick="triggerMotorToggle('${dev.id}')" disabled 
-                      class="px-6 py-3 rounded-xl font-bold text-sm transition transform active:scale-95 bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50">
-                DEVICE OFFLINE
-              </button>
+            <div id="tankIndicator-${dev.id}" class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 border border-slate-700">
+              NORMAL
             </div>
-
           </div>
 
-          <div class="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-500">
-            <span id="footerInfo-${dev.id}">Power disconnected</span>
-            <button onclick="removeDevice('${dev.id}')" class="text-rose-400 hover:underline">Remove Device</button>
+          <!-- Big Tactile One-Handed Motor Button (Optimized for Android Thumb) -->
+          <div class="flex flex-col items-center justify-center py-3">
+            <button id="btnAction-${dev.id}" onclick="triggerMotorToggle('${dev.id}')" disabled
+                    class="w-40 h-40 rounded-full flex flex-col items-center justify-center gap-1 transition-all duration-300 transform active:scale-95 shadow-2xl bg-slate-800 border-4 border-slate-700 text-slate-500 cursor-not-allowed">
+              <i data-lucide="power" class="w-10 h-10 mb-0.5" id="btnIcon-${dev.id}"></i>
+              <span id="btnStateText-${dev.id}" class="text-sm font-black tracking-wider uppercase">OFFLINE</span>
+              <span id="btnSubText-${dev.id}" class="text-[10px] font-medium opacity-80">CONNECTING...</span>
+            </button>
           </div>
+
+          <!-- Footer Information & Status -->
+          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <div class="flex items-center space-x-2">
+              <span id="dotMotor-${dev.id}" class="w-2 h-2 rounded-full bg-slate-600"></span>
+              <span id="motorStateText-${dev.id}" class="font-bold text-slate-400">DISCONNECTED</span>
+            </div>
+            <div class="flex items-center space-x-2.5">
+              <span id="footerInfo-${dev.id}" class="text-slate-500">Uptime: --</span>
+              <button onclick="removeDevice('${dev.id}')" class="text-rose-400/80 hover:text-rose-400 active:underline text-[11px]">Remove</button>
+            </div>
+          </div>
+
         </div>
       `).join("");
 
@@ -522,49 +547,79 @@
       updatePresenceDOM();
     }
 
-    // Update Live State without re-rendering the whole page
+    // Fast Dynamic DOM Updater (Zero Thrashing)
     function updateDeviceStateDOM(devId, data) {
       const isRunning = data.relay === 1;
       const isFull = data.tankFull === 1;
 
-      const motorText = document.getElementById(`motorStateText-${devId}`);
       const btn = document.getElementById(`btnAction-${devId}`);
+      const btnStateText = document.getElementById(`btnStateText-${devId}`);
+      const btnSubText = document.getElementById(`btnSubText-${devId}`);
+      const motorStateText = document.getElementById(`motorStateText-${devId}`);
+      const dotMotor = document.getElementById(`dotMotor-${devId}`);
       const bar = document.getElementById(`bar-${devId}`);
       const tankText = document.getElementById(`tankText-${devId}`);
       const tankWrap = document.getElementById(`tankIconWrap-${devId}`);
+      const tankIndicator = document.getElementById(`tankIndicator-${devId}`);
 
-      if (motorText) {
-        motorText.className = `text-base font-bold ${isRunning ? 'text-emerald-400' : 'text-slate-300'}`;
-        motorText.innerText = isRunning ? "🟢 RUNNING" : "⚪ STOPPED";
+      if (btn) {
+        btn.disabled = false;
+        btn.style.cursor = "pointer";
+
+        if (isRunning) {
+          btn.className = "w-40 h-40 rounded-full flex flex-col items-center justify-center gap-1 transition-all duration-300 transform active:scale-95 shadow-2xl bg-gradient-to-tr from-rose-600 to-red-500 border-4 border-rose-400 text-white shadow-rose-600/40 motor-running-anim";
+          if (btnStateText) btnStateText.innerText = "STOP MOTOR";
+          if (btnSubText) btnSubText.innerText = "TAP TO SHUT OFF";
+        } else {
+          btn.className = "w-40 h-40 rounded-full flex flex-col items-center justify-center gap-1 transition-all duration-300 transform active:scale-95 shadow-2xl bg-gradient-to-tr from-emerald-600 to-green-500 border-4 border-emerald-400 text-white shadow-emerald-600/40";
+          if (btnStateText) btnStateText.innerText = "START MOTOR";
+          if (btnSubText) btnSubText.innerText = "TAP TO RUN";
+        }
+      }
+
+      if (motorStateText && dotMotor) {
+        if (isRunning) {
+          motorStateText.className = "font-bold text-emerald-400";
+          motorStateText.innerText = "MOTOR RUNNING";
+          dotMotor.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        } else {
+          motorStateText.className = "font-bold text-slate-300";
+          motorStateText.innerText = "MOTOR STOPPED";
+          dotMotor.className = "w-2 h-2 rounded-full bg-slate-500";
+        }
       }
 
       if (bar) {
         bar.className = `absolute top-0 left-0 right-0 h-1.5 transition-colors duration-300 ${isRunning ? 'bg-emerald-500' : 'bg-slate-700'}`;
       }
 
-      if (btn) {
-        btn.disabled = false;
-        btn.className = `px-6 py-3 rounded-xl font-bold text-sm transition transform active:scale-95 shadow-lg ${isRunning ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/30' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30'}`;
-        btn.innerText = isRunning ? "STOP MOTOR" : "START MOTOR";
-      }
-
-      if (tankText) {
-        tankText.className = `text-base font-bold ${isFull ? 'text-sky-400' : 'text-slate-200'}`;
-        tankText.innerText = isFull ? "100% FULL (Auto-Cut)" : "Normal / Refill Ready";
-      }
-
-      if (tankWrap) {
-        tankWrap.className = `w-12 h-12 rounded-xl flex items-center justify-center transition ${isFull ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' : 'bg-slate-800 text-slate-400'}`;
+      if (tankText && tankIndicator && tankWrap) {
+        if (isFull) {
+          tankText.className = "text-sm font-bold text-emerald-400";
+          tankText.innerText = "💧 100% FULL (Auto-Cut)";
+          tankWrap.className = "w-10 h-10 rounded-xl flex items-center justify-center transition bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+          tankIndicator.className = "text-[10px] font-bold px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30";
+          tankIndicator.innerText = "FULL";
+        } else {
+          tankText.className = "text-sm font-bold text-slate-200";
+          tankText.innerText = "Normal / Refill Ready";
+          tankWrap.className = "w-10 h-10 rounded-xl flex items-center justify-center transition bg-slate-800 text-slate-400";
+          tankIndicator.className = "text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 border border-slate-700";
+          tankIndicator.innerText = "NORMAL";
+        }
       }
 
       const footer = document.getElementById(`footerInfo-${devId}`);
       if (footer) {
-        const ramStr = data.freeRam ? ` • RAM: ${data.freeRam}KB Free` : "";
-        footer.innerText = `Active Run: ${data.runTime || 0}s • Uptime: ${Math.floor((data.uptime || 0) / 60)}m${ramStr}`;
+        const runSec = data.runTime || 0;
+        const runMins = Math.floor(runSec / 60);
+        const runSecs = runSec % 60;
+        const runStr = isRunning ? `Run: ${runMins}m ${runSecs}s • ` : "";
+        footer.innerText = `${runStr}Uptime: ${Math.floor((data.uptime || 0) / 60)}m`;
       }
     }
 
-    // Update Online / Offline Presence Indicators
+    // Update Presence Watchdog
     function updatePresenceDOM() {
       const now = Date.now();
 
@@ -572,57 +627,62 @@
         const state = deviceStates[dev.id] || { online: false, lastSeen: 0, rssi: null };
         const isOnline = state.online === true && (now - (state.lastSeen || 0) < DEVICE_OFFLINE_TIMEOUT_MS);
 
-        const card = document.getElementById(`card-${dev.id}`);
         const badge = document.getElementById(`badge-${dev.id}`);
         const subtext = document.getElementById(`subtext-${dev.id}`);
         const btn = document.getElementById(`btnAction-${dev.id}`);
+        const btnStateText = document.getElementById(`btnStateText-${dev.id}`);
+        const btnSubText = document.getElementById(`btnSubText-${dev.id}`);
 
         if (!badge) return;
 
         if (isOnline) {
-          badge.className = "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-          badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ONLINE';
+          badge.className = "flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ONLINE';
 
-          if (subtext) subtext.innerHTML = `WiFi Signal: <b class="text-slate-200">${state.rssi || -60} dBm</b> • Ultra-Fast Link Active`;
+          if (subtext) {
+            subtext.innerHTML = `<span>Wi-Fi Signal: <b class="text-slate-200">${state.rssi || -60} dBm</b></span>`;
+          }
         } else {
-          badge.className = "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20";
-          badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> OFFLINE';
+          badge.className = "flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> OFFLINE';
 
-          if (subtext) subtext.innerHTML = '<span class="text-rose-400 font-medium">Device is Unplugged or Lost Wi-Fi</span>';
+          if (subtext) {
+            subtext.innerHTML = `<span>Device is offline or lost Wi-Fi</span>`;
+          }
 
-          if (btn && btn.innerText !== "STARTING..." && btn.innerText !== "STOPPING...") {
+          if (btn) {
             btn.disabled = true;
-            btn.className = "px-6 py-3 rounded-xl font-bold text-xs bg-slate-800/80 text-slate-500 cursor-not-allowed border border-slate-700/50";
-            btn.innerText = "DEVICE OFFLINE";
+            btn.style.cursor = "not-allowed";
+            btn.className = "w-40 h-40 rounded-full flex flex-col items-center justify-center gap-1 transition-all duration-300 shadow-xl bg-slate-800 border-4 border-slate-700 text-slate-500 cursor-not-allowed";
+            if (btnStateText) btnStateText.innerText = "OFFLINE";
+            if (btnSubText) btnSubText.innerText = "CHECK CONTROLLER";
           }
         }
       });
     }
 
     // -------------------------------------------------------------------------
-    // Instant Optimistic Motor Toggle (Sub-30ms User Feedback)
+    // Motor Trigger with Android Haptics
     // -------------------------------------------------------------------------
     function triggerMotorToggle(devId) {
-      const state = deviceStates[devId] || { relay: 0 };
-      const currentlyRunning = state.relay === 1;
-      const targetState = currentlyRunning ? 0 : 1;
+      const state = deviceStates[devId] || {};
+      const currentRelay = state.relay || 0;
+      const targetRelay = currentRelay === 1 ? 0 : 1;
 
-      // 1. Audio Click
-      playBeep(currentlyRunning ? 440 : 880, 0.04);
+      // Native Android tactile pulse
+      triggerHaptic(targetRelay === 1 ? "start" : "stop");
+      playBeep(targetRelay === 1 ? 840 : 380, 0.12);
 
-      // 2. Instant Optimistic Button Transition (0ms)
-      const btn = document.getElementById(`btnAction-${devId}`);
-      if (btn) {
-        btn.innerText = currentlyRunning ? "STOPPING..." : "STARTING...";
-        btn.className = "px-6 py-3 rounded-xl font-bold text-sm bg-slate-700 text-white animate-pulse";
+      // Optimistic 0ms UI update
+      state.relay = targetRelay;
+      deviceStates[devId] = state;
+      updateDeviceStateDOM(devId, state);
+
+      if (mqttClient && mqttClient.connected) {
+        const cmdTopic = `smarttank/${devId}/cmd`;
+        mqttClient.publish(cmdTopic, JSON.stringify({ relay: targetRelay }), { qos: 1 });
+        appendLog("COMMAND", `Sent ${targetRelay ? "START" : "STOP"} command to [${devId}] via MQTT.`, "sky");
       }
-
-      appendLog("COMMAND", `Sent ${targetState === 1 ? 'START' : 'STOP'} command to [${devId}] via MQTT.`, "sky");
-
-      // 3. Send over MQTT Socket immediately
-      const topic = `smarttank/${devId}/cmd`;
-      const payload = JSON.stringify({ relay: targetState });
-      mqttClient.publish(topic, payload);
     }
 
     // -------------------------------------------------------------------------
@@ -631,28 +691,35 @@
     function handleDevicePairing(e) {
       e.preventDefault();
       const id = document.getElementById("inputDevId").value.trim().toUpperCase();
-      const key = document.getElementById("inputDevKey").value.trim();
-      const name = document.getElementById("inputDevName").value.trim();
+      const key = document.getElementById("inputDevKey").value.trim().toUpperCase();
+      const name = document.getElementById("inputDevName").value.trim() || "Roof Tank Motor";
 
-      if (devices.some(d => d.id === id)) {
-        alert("This device is already in your dashboard!");
-        return;
+      if (!id || !key) return;
+
+      const existing = devices.find(d => d.id === id);
+      if (existing) {
+        existing.name = name;
+        existing.key = key;
+      } else {
+        devices.push({ id, name, key });
       }
 
-      devices.push({ id, key, name });
       saveDevices();
       buildDeviceDOM();
       subscribeToDevices();
       closeModal("modalAddDevice");
+      triggerHaptic("start");
+      playBeep(980, 0.15);
       appendLog("PAIR", `Device [${id}] claimed and linked successfully!`, "emerald");
     }
 
     function removeDevice(devId) {
-      if (confirm(`Remove device ${devId} from your account?`)) {
+      if (confirm(`Remove device ${devId} from this phone?`)) {
         devices = devices.filter(d => d.id !== devId);
         saveDevices();
         buildDeviceDOM();
-        appendLog("DEVICE", `Device [${devId}] removed from dashboard.`, "slate");
+        triggerHaptic("stop");
+        appendLog("DEVICE", `Device [${devId}] removed.`, "slate");
       }
     }
 
@@ -660,30 +727,87 @@
       localStorage.setItem("smarttank_devices", JSON.stringify(devices));
     }
 
+    // -------------------------------------------------------------------------
+    // QR Code Label Generator
+    // -------------------------------------------------------------------------
     function generateBoxQR() {
       const devId = document.getElementById("qrDevId").value.trim().toUpperCase();
-      const devKey = document.getElementById("qrDevKey").value.trim();
-      const qrArea = document.getElementById("qrPrintArea");
+      const devKey = document.getElementById("qrDevKey").value.trim().toUpperCase();
+      if (!devId || !devKey) return;
+
       const canvas = document.getElementById("qrCanvas");
       canvas.innerHTML = "";
 
       const pairUrl = `${window.location.origin}${window.location.pathname}?pair=${devId}&key=${devKey}`;
       new QRCode(canvas, {
         text: pairUrl,
-        width: 140,
-        height: 140,
+        width: 130,
+        height: 130,
         colorDark: "#090d16",
         colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
+        correctLevel: QRCode.CorrectLevel.M
       });
 
       document.getElementById("qrLabelId").innerText = devId;
-      qrArea.classList.remove("hidden");
+      document.getElementById("qrPrintArea").classList.remove("hidden");
+      triggerHaptic("click");
     }
 
-    function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
-    function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+    // -------------------------------------------------------------------------
+    // Real-Time Event Logger
+    // -------------------------------------------------------------------------
+    function appendLog(category, message, color = "slate") {
+      logCounter++;
+      const badge = document.getElementById("logCountBadge");
+      if (badge) badge.innerText = logCounter;
+
+      const terminal = document.getElementById("logTerminal");
+      if (!terminal) return;
+
+      const now = new Date();
+      const timeStr = now.toTimeString().split(" ")[0];
+
+      const colors = {
+        sky: "text-sky-400 bg-sky-500/10 border-sky-500/20",
+        emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+        amber: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+        rose: "text-rose-400 bg-rose-500/10 border-rose-500/20",
+        slate: "text-slate-400 bg-slate-500/10 border-slate-500/20"
+      };
+
+      const entry = document.createElement("div");
+      entry.className = "flex items-start space-x-1.5 text-[11px] leading-tight";
+      entry.innerHTML = `
+        <span class="text-slate-600 font-mono select-none">[${timeStr}]</span>
+        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold border uppercase tracking-wider ${colors[color] || colors.slate}">${category}</span>
+        <span class="text-slate-300 flex-1 break-words">${message}</span>
+      `;
+
+      terminal.appendChild(entry);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function clearLogs() {
+      const terminal = document.getElementById("logTerminal");
+      if (terminal) terminal.innerHTML = "";
+      logCounter = 0;
+      const badge = document.getElementById("logCountBadge");
+      if (badge) badge.innerText = "0";
+      triggerHaptic("click");
+    }
+
+    // -------------------------------------------------------------------------
+    // Modal Helpers
+    // -------------------------------------------------------------------------
+    function openModal(id) {
+      document.getElementById(id).classList.remove("hidden");
+      triggerHaptic("click");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add("hidden");
+      triggerHaptic("click");
+    }
   </script>
 </body>
-
 </html>
