@@ -2199,6 +2199,19 @@
         if (fwBadge) fwBadge.innerText = data.fw;
       }
 
+      if (data.maxRuntime) {
+        const sel = document.getElementById(`presetMaxRuntime-${devId}`);
+        if (sel && !sel.matches(":focus")) sel.value = String(data.maxRuntime);
+      }
+      if (typeof data.scheduleOn !== "undefined") {
+        const toggle = document.getElementById(`presetMorningToggle-${devId}`);
+        if (toggle) toggle.checked = (data.scheduleOn === 1);
+      }
+      if (data.schedTime) {
+        const timeInput = document.getElementById(`presetMorningTime-${devId}`);
+        if (timeInput && !timeInput.matches(":focus")) timeInput.value = data.schedTime;
+      }
+
       const otaStatus = document.getElementById(`otaStatusText-${devId}`);
       if (otaStatus && cloudReleaseInfo) {
         if (data.build && cloudReleaseInfo.build > data.build) {
@@ -2269,6 +2282,19 @@
       const state = deviceStates[devId] || {};
       const currentRelay = state.relay || 0;
       const targetRelay = currentRelay === 1 ? 0 : 1;
+
+      // Safety check: Prevent start if tank is already 100% full
+      if (targetRelay === 1 && state.tankFull === 1) {
+        triggerHaptic("stop");
+        playBeep(320, 0.25, "sawtooth");
+        appendLog("LOCKOUT", `⚠️ Cannot start [${devId}]: Water tank is already 100% full!`, "rose");
+        const tankBox = document.getElementById(`tankBox-${devId}`);
+        if (tankBox) {
+          tankBox.classList.add("ring-2", "ring-rose-500", "animate-pulse");
+          setTimeout(() => tankBox.classList.remove("ring-2", "ring-rose-500", "animate-pulse"), 1500);
+        }
+        return;
+      }
 
       // Native Android tactile pulse
       triggerHaptic(targetRelay === 1 ? "start" : "stop");
