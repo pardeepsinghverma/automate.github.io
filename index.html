@@ -87,8 +87,16 @@
         </div>
       </div>
 
-      <!-- Action Buttons (Language, Help Guide, Sound, Add, QR) -->
+      <!-- Action Buttons (Install, Language, Help Tour, Sound, Add) -->
       <div class="flex items-center space-x-1.5">
+        <!-- Permanent Install App Button -->
+        <button id="btnNavInstall" onclick="triggerPwaInstall()"
+          class="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 active:scale-95 text-white text-xs font-bold transition shadow-md shadow-emerald-600/30"
+          title="Install App on Phone">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span data-i18n="install_app">Install App</span>
+        </button>
+
         <!-- Language Selector Pill -->
         <button onclick="openModal('modalLanguage')"
           class="flex items-center space-x-1 px-2 py-1.5 rounded-xl bg-slate-800/80 active:bg-slate-700 text-slate-200 border border-slate-700/80 text-xs font-bold transition shadow-sm"
@@ -97,10 +105,10 @@
           <span id="currentLangLabel">English</span>
         </button>
 
-        <!-- Elderly Friendly Help / Guide Button -->
-        <button onclick="openWelcomeJourney(0)"
+        <!-- Interactive Visual Help / Guided Tour Button -->
+        <button onclick="startInteractiveTour()"
           class="p-2 rounded-xl bg-sky-500/10 active:bg-sky-500/20 text-sky-400 border border-sky-500/20 transition"
-          title="User Guide">
+          title="How It Works (Interactive Tour)">
           <i data-lucide="help-circle" class="w-4 h-4"></i>
         </button>
 
@@ -113,7 +121,7 @@
 
         <!-- Add Device -->
         <button onclick="openModal('modalAddDevice')"
-          class="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-sky-600 active:bg-sky-500 text-white font-bold text-xs transition shadow-md shadow-sky-600/30">
+          class="flex items-center space-x-1 px-2 py-1.5 rounded-xl bg-sky-600 active:bg-sky-500 text-white font-bold text-xs transition shadow-md shadow-sky-600/30">
           <i data-lucide="plus" class="w-3.5 h-3.5"></i>
           <span data-i18n="add">Add</span>
         </button>
@@ -124,6 +132,26 @@
 
   <!-- Main Body Content (Mobile First Container) -->
   <main class="max-w-md mx-auto px-4 py-4 w-full flex-1 space-y-4">
+
+    <!-- Permanent Mobile App Install Banner -->
+    <div id="pwaInstallBanner" class="glass-card rounded-2xl p-3 border border-sky-500/30 flex items-center justify-between shadow-lg">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20 flex-shrink-0">
+          <i data-lucide="smartphone" class="w-4.5 h-4.5"></i>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span data-i18n="install_banner_title">Install SmartTank on Phone</span>
+            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300">1-Tap</span>
+          </div>
+          <p class="text-[10px] text-slate-300 mt-0.5" data-i18n="install_banner_sub">Add to home screen for 1-tap fast access like a native app!</p>
+        </div>
+      </div>
+      <button onclick="triggerPwaInstall()" class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-bold text-xs shadow-md shadow-sky-600/30 transition flex items-center gap-1 flex-shrink-0">
+        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+        <span data-i18n="install_app">Install App</span>
+      </button>
+    </div>
 
     <!-- Compact Gateway Status Pill -->
     <div class="flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800/80 text-[11px] text-slate-400">
@@ -156,7 +184,7 @@
           class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition shadow-lg shadow-sky-600/30" data-i18n="pair_first">
           Pair Your First Device
         </button>
-        <button onclick="openWelcomeJourney(0)"
+        <button onclick="startInteractiveTour(0)"
           class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition border border-slate-700">
           <span data-i18n="view_guide">📖 How It Works</span>
         </button>
@@ -199,41 +227,112 @@
   </footer>
 
   <!-- ========================================================================= -->
-  <!-- MODAL: ELDERLY-FRIENDLY WELCOME USER JOURNEY (3 Easy Visual Steps)        -->
+  <!-- NATIVE INTERACTIVE FEATURE TOUR / COACH MARKS OVERLAY                     -->
   <!-- ========================================================================= -->
-  <div id="modalWelcomeJourney" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
-    <div class="glass-card rounded-3xl w-full max-w-sm p-6 border border-slate-700 shadow-2xl text-center">
+  <div id="interactiveTourOverlay" class="fixed inset-0 z-50 pointer-events-none hidden transition-opacity duration-300">
+    <!-- Dim Backdrop -->
+    <div class="absolute inset-0 bg-black/85 pointer-events-auto" onclick="closeInteractiveTour()"></div>
+
+    <!-- Glowing Animated Spotlight Box (Positions around the real UI element) -->
+    <div id="tourSpotlightRing" class="absolute pointer-events-none rounded-3xl transition-all duration-300 ring-4 ring-sky-400 ring-offset-4 ring-offset-slate-950 shadow-[0_0_50px_rgba(56,189,248,0.6)]"></div>
+
+    <!-- Floating Coach Card with Non-Technical Language -->
+    <div id="tourCoachCard" class="fixed z-50 pointer-events-auto left-4 right-4 max-w-sm mx-auto bottom-6 glass-card rounded-3xl p-5 border border-sky-400/60 shadow-2xl transition-all duration-300">
       
-      <!-- Top Step Counter & Close -->
+      <!-- Top Bar: Step & Skip -->
       <div class="flex items-center justify-between mb-3 border-b border-slate-800/80 pb-2">
-        <span class="text-[11px] font-extrabold text-sky-400 uppercase tracking-wider" id="guideStepCounter">Step 1 of 3</span>
-        <button onclick="closeModal('modalWelcomeJourney')" class="text-slate-400 hover:text-white p-1">
-          <i data-lucide="x" class="w-5 h-5"></i>
+        <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30" id="tourStepBadge">Step 1 of 4</span>
+        <button onclick="closeInteractiveTour()" class="text-xs text-slate-400 hover:text-white font-medium flex items-center gap-1">
+          <span>Skip</span> <i data-lucide="x" class="w-3.5 h-3.5"></i>
         </button>
       </div>
 
-      <!-- Step Content Area -->
-      <div id="guideStepContent" class="py-4">
-        <!-- Dynamically populated step content -->
+      <!-- Content -->
+      <div class="flex items-start space-x-3 mb-4">
+        <div id="tourStepIconWrap" class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 flex-shrink-0">
+          <i data-lucide="power" class="w-6 h-6" id="tourStepIcon"></i>
+        </div>
+        <div>
+          <h4 class="text-sm font-extrabold text-white" id="tourStepTitle">Big Motor Button</h4>
+          <p class="text-xs text-slate-300 mt-1 leading-relaxed" id="tourStepDesc">Tap this button to turn your motor on or off.</p>
+        </div>
       </div>
 
-      <!-- Step Dots Indicator -->
-      <div class="flex items-center justify-center space-x-2 my-3" id="guideDots">
-        <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
-        <span class="w-2.5 h-2.5 rounded-full bg-slate-700"></span>
-        <span class="w-2.5 h-2.5 rounded-full bg-slate-700"></span>
-      </div>
-
-      <!-- Navigation Buttons -->
-      <div class="flex items-center space-x-2 pt-2">
-        <button id="guideBtnPrev" onclick="prevGuideStep()" class="w-1/3 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs transition">
+      <!-- Action Buttons & Step Dots -->
+      <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
+        <button id="tourBtnPrev" onclick="prevTourStep()" class="px-3.5 py-2 rounded-xl bg-slate-800 active:bg-slate-700 text-slate-300 font-bold text-xs transition">
           &larr; Back
         </button>
-        <button id="guideBtnNext" onclick="nextGuideStep()" class="w-2/3 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 active:bg-sky-500 text-white font-bold text-xs transition shadow-md shadow-sky-600/30">
+        <div class="flex items-center space-x-1.5" id="tourDots">
+          <!-- Populated dynamically -->
+        </div>
+        <button id="tourBtnNext" onclick="nextTourStep()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 active:scale-95 text-white font-bold text-xs shadow-md shadow-sky-600/30 transition">
           Next &rarr;
         </button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: PERMANENT HOME SCREEN APP INSTALL GUIDE                            -->
+  <!-- ========================================================================= -->
+  <div id="modalInstallGuide" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-card rounded-3xl w-full max-w-sm p-6 border border-slate-700 shadow-2xl">
+      <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2.5">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center border border-sky-500/20">
+            <i data-lucide="smartphone" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-sm font-extrabold text-white" data-i18n="install_app">Install SmartTank App</h3>
+        </div>
+        <button onclick="closeModal('modalInstallGuide')" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-300 mb-4 leading-relaxed" data-i18n="install_banner_sub">
+        Add SmartTank to your phone home screen for 1-tap fast access like a native app without typing URLs!
+      </p>
+
+      <!-- Step-by-Step OS Guidance -->
+      <div class="space-y-3 text-left">
+        <!-- Android Chrome Box -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800">
+          <div class="flex items-center space-x-2 text-xs font-bold text-emerald-400 mb-1.5">
+            <i data-lucide="smartphone" class="w-4 h-4"></i>
+            <span>Android (Chrome / Edge / Samsung)</span>
+          </div>
+          <ol class="text-[11px] text-slate-300 space-y-1.5 pl-4 list-decimal leading-relaxed">
+            <li>Tap the <b>Three Dots (⋮)</b> in Chrome top-right.</li>
+            <li>Tap <b>"Install App"</b> (or <b>"Add to Home screen"</b>).</li>
+            <li>Tap <b>"Install"</b>. SmartTank icon will appear on your phone!</li>
+          </ol>
+        </div>
+
+        <!-- iPhone Safari Box -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800">
+          <div class="flex items-center space-x-2 text-xs font-bold text-sky-400 mb-1.5">
+            <i data-lucide="apple" class="w-4 h-4"></i>
+            <span>iPhone / iPad (Safari)</span>
+          </div>
+          <ol class="text-[11px] text-slate-300 space-y-1.5 pl-4 list-decimal leading-relaxed">
+            <li>Tap the <b>Share Button (⎋)</b> at the bottom.</li>
+            <li>Scroll down and tap <b>"Add to Home Screen (⊞)"</b>.</li>
+            <li>Tap <b>"Add"</b> in the top right.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-800 flex items-center space-x-2">
+        <button onclick="copyAppUrl()" class="w-1/2 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition border border-slate-700 flex items-center justify-center gap-1">
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          <span>Copy Link</span>
+        </button>
+        <button onclick="closeModal('modalInstallGuide')" class="w-1/2 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md shadow-sky-600/30 transition">
+          Got It!
+        </button>
+      </div>
     </div>
   </div>
 
@@ -535,7 +634,20 @@
         ota_checking: "Checking GitHub...",
         ota_btn: "Check Update",
         ota_downloading: "Downloading Update...",
-        ota_failed: "Update Failed"
+        ota_failed: "Update Failed",
+        install_app: "Install App",
+        install_banner_title: "Install SmartTank on Phone",
+        install_banner_sub: "Add to home screen for 1-tap fast access like a native app!",
+        tour_step1_title: "Big Motor Button (Tap to Start / Stop)",
+        tour_step1_desc: "Tap this big round button to start pumping water. Tap again to stop. Green = Motor ON, Red = Motor OFF.",
+        tour_step2_title: "Water Tank Level & Auto-Cut",
+        tour_step2_desc: "Shows your roof tank. When it reaches 100% FULL, the motor cuts off automatically in 5 seconds so water NEVER spills.",
+        tour_step3_title: "Morning Water Timer & Safety",
+        tour_step3_desc: "Set morning municipal water time here. Motor runs on time and auto-shuts off after 60 mins to prevent motor coil burnout.",
+        tour_step4_title: "1-Tap Home Screen App",
+        tour_step4_desc: "Install SmartTank on your home screen so you can open it anytime like a native app without Chrome!",
+        tour_finish: "Start Using SmartTank &rarr;",
+        tour_step_counter: "Step {step} of 4"
       },
       hi: {
         label: "हिंदी",
@@ -608,7 +720,20 @@
         ota_checking: "GitHub से जाँच हो रही है...",
         ota_btn: "अपडेट जाँचें",
         ota_downloading: "डाउनलोड हो रहा है...",
-        ota_failed: "अपडेट विफल"
+        ota_failed: "अपडेट विफल",
+        install_app: "ऐप इंस्टॉल करें",
+        install_banner_title: "स्मार्टटैंक को होम स्क्रीन पर जोड़ें",
+        install_banner_sub: "यूट्यूब या व्हाट्सऐप की तरह 1-टच में खोलने के लिए फोन पर जोड़ें!",
+        tour_step1_title: "बड़ा मोटर बटन (चालू / बंद करें)",
+        tour_step1_desc: "यह आपकी मोटर का मुख्य बटन है। इसे दबाते ही मोटर चालू हो जाएगी, दोबारा दबाने से बंद। हरा = चालू, लाल = बंद।",
+        tour_step2_title: "पानी की टंकी और 100% ऑटो-कट",
+        tour_step2_desc: "यह आपकी छत की टंकी है। जैसे ही टंकी पूरी भर जाएगी, मोटर 5 सेकंड में खुद बंद हो जाएगी ताकि पानी कभी ओवरफ्लो न हो।",
+        tour_step3_title: "सुबह का टाइमर और सुरक्षा लॉक",
+        tour_step3_desc: "यहाँ से सुबह सरकारी पानी आने का समय सेट करें। मोटर अपने समय पर चलेगी और 60 मिनट बाद खुद बंद होकर मोटर को जलने से बचाएगी।",
+        tour_step4_title: "1-टच फोन ऐप बनाएं",
+        tour_step4_desc: "स्मार्टटैंक को अपने फोन की होम स्क्रीन पर जोड़ें, ताकि आप इसे व्हाट्सऐप की तरह सीधे 1 टच में खोल सकें!",
+        tour_finish: "ऐप शुरू करें &rarr;",
+        tour_step_counter: "चरण {step} / 4"
       },
       hinglish: {
         label: "Hinglish",
@@ -681,7 +806,20 @@
         ota_checking: "GitHub se check ho raha...",
         ota_btn: "Update Check Karein",
         ota_downloading: "Download ho raha hai...",
-        ota_failed: "Update Fail Hua"
+        ota_failed: "Update Fail Hua",
+        install_app: "App Install Karein",
+        install_banner_title: "SmartTank Phone Mein Install Karein",
+        install_banner_sub: "Home screen par add karein, WhatsApp ki tarah 1-touch mein direct khulega!",
+        tour_step1_title: "Bada Motor Button (Tap to Start / Stop)",
+        tour_step1_desc: "Yeh aapka main switch hai. Ek baar dabate hi motor chalu ho jayegi, dubara dabane se band. Green = Chalu, Red = Band.",
+        tour_step2_title: "Chhat Ki Tanki & Auto-Cut",
+        tour_step2_desc: "Yeh aapki chhat ki tanki hai. Tanki full hote hi motor 5 second mein apne aap band ho jayegi taaki overflow na ho.",
+        tour_step3_title: "Subah Ka Timer & Safety Lock",
+        tour_step3_desc: "Subah supply paani aane ka time set karein. Motor time par chalu hogi aur 60 min safety lock se motor kabhi nahi jalegi.",
+        tour_step4_title: "1-Tap Home Screen App",
+        tour_step4_desc: "SmartTank ko phone screen par add karein, taaki WhatsApp ki tarah bina Chrome khole direct use kar sakein!",
+        tour_finish: "Shuru Karein &rarr;",
+        tour_step_counter: "Step {step} of 4"
       },
       pa: {
         label: "ਪੰਜਾਬੀ",
@@ -754,7 +892,20 @@
         ota_checking: "GitHub ਤੋਂ ਚੈੱਕ ਹੋ ਰਿਹਾ...",
         ota_btn: "ਅੱਪਡੇਟ ਚੈੱਕ ਕਰੋ",
         ota_downloading: "ਡਾਊਨਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...",
-        ota_failed: "ਅੱਪਡੇਟ ਅਸਫਲ"
+        ota_failed: "ਅੱਪਡੇਟ ਅਸਫਲ",
+        install_app: "ਐਪ ਇੰਸਟਾਲ ਕਰੋ",
+        install_banner_title: "ਸਮਾਰਟਟੈਂਕ ਨੂੰ ਹੋਮ ਸਕ੍ਰੀਨ 'ਤੇ ਜੋੜੋ",
+        install_banner_sub: "1-ਟੱਚ ਨਾਲ ਸਿੱਧਾ ਖੋਲ੍ਹਣ ਲਈ ਫੋਨ ਸਕ੍ਰੀਨ 'ਤੇ ਜੋੜੋ!",
+        tour_step1_title: "ਵੱਡਾ ਮੋਟਰ ਬਟਨ (ਚਾਲੂ / ਬੰਦ ਕਰੋ)",
+        tour_step1_desc: "ਇਹ ਤੁਹਾਡੀ ਮੋਟਰ ਦਾ ਮੁੱਖ ਸਵਿੱਚ ਹੈ। ਇਸਨੂੰ ਦਬਾਉਣ 'ਤੇ ਮੋਟਰ ਚੱਲ ਪਵੇਗੀ, ਦੁਬਾਰਾ ਦਬਾਉਣ 'ਤੇ ਬੰਦ ਹੋ ਜਾਵੇਗੀ। ਹਰਾ = ਚਾਲੂ, ਲਾਲ = ਬੰਦ।",
+        tour_step2_title: "ਪਾਣੀ ਵਾਲੀ ਟੈਂਕੀ ਅਤੇ 100% ਆਟੋ-ਕੱਟ",
+        tour_step2_desc: "ਇਹ ਤੁਹਾਡੀ ਛੱਤ ਵਾਲੀ ਟੈਂਕੀ ਹੈ। ਜਿਵੇਂ ਹੀ ਟੈਂਕੀ ਪੂਰੀ ਭਰ ਜਾਵੇਗੀ, ਮੋਟਰ 5 ਸੈਕਿੰਡ ਵਿੱਚ ਬੰਦ ਹੋ ਜਾਵੇਗੀ ਤਾਂ ਜੋ ਪਾਣੀ ਕਦੇ ਬਾਹਰ ਨਾ ਡਿੱਗੇ।",
+        tour_step3_title: "ਸਵੇਰ ਦਾ ਟਾਈਮਰ ਅਤੇ ਸੁਰੱਖਿਆ ਲਾਕ",
+        tour_step3_desc: "ਇੱਥੋਂ ਸਵੇਰ ਦੇ ਸਰਕਾਰੀ ਪਾਣੀ ਦਾ ਸਮਾਂ ਸੈੱਟ ਕਰੋ। ਮੋਟਰ ਆਪਣੇ ਆਪ ਚੱਲੇਗੀ ਅਤੇ 60 ਮਿੰਟ ਸੁਰੱਖਿਆ ਲਾਕ ਨਾਲ ਮੋਟਰ ਸੜਨ ਤੋਂ ਬਚੀ ਰਹੇਗੀ।",
+        tour_step4_title: "1-ਟੱਚ ਫੋਨ ਐਪ ਬਣਾਓ",
+        tour_step4_desc: "ਸਮਾਰਟਟੈਂਕ ਨੂੰ ਆਪਣੇ ਫੋਨ ਦੀ ਹੋਮ ਸਕ੍ਰੀਨ 'ਤੇ ਜੋੜੋ, ਤਾਂ ਜੋ ਤੁਸੀਂ ਇਸਨੂੰ ਬਿਨਾਂ ਕਰੋਮ ਖੋਲ੍ਹੇ 1 ਟੱਚ ਨਾਲ ਸਿੱਧਾ ਵਰਤ ਸਕੋ!",
+        tour_finish: "ਐਪ ਸ਼ੁਰੂ ਕਰੋ &rarr;",
+        tour_step_counter: "ਕਦਮ {step} / 4"
       }
     };
 
@@ -808,114 +959,218 @@
       closeModal("modalLanguage");
       triggerHaptic("start");
 
-      const hasSeenGuide = localStorage.getItem("smarttank_guide_seen");
-      if (!hasSeenGuide) {
-        openWelcomeJourney(0);
-      } else {
-        const urlParams = new URLSearchParams(window.location.search);
-        const pairId = urlParams.get("pair") || urlParams.get("id");
-        if (pairId) {
-          openModal("modalAddDevice");
-        }
+      const hasSeenTour = localStorage.getItem("smarttank_tour_seen");
+      if (!hasSeenTour) {
+        setTimeout(() => startInteractiveTour(0), 350);
       }
     }
 
     // -------------------------------------------------------------------------
-    // Elderly-Friendly Welcome User Journey
+    // Native-App Style Interactive Feature Walkthrough (Spotlight Tour)
     // -------------------------------------------------------------------------
-    const GUIDE_STEPS = [
+    let tourStep = 0;
+    const TOUR_STEPS = [
       {
         icon: "power",
-        color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/20",
-        titleKey: "guide_step1_title",
-        descKey: "guide_step1_desc"
+        color: "from-emerald-500 to-green-600",
+        targetSelector: () => {
+          const firstDev = devices[0];
+          return firstDev ? document.getElementById(`btnAction-${firstDev.id}`) : document.getElementById("pwaInstallBanner");
+        },
+        titleKey: "tour_step1_title",
+        descKey: "tour_step1_desc"
       },
       {
         icon: "waves",
-        color: "text-sky-400 bg-sky-500/10 border-sky-500/20 shadow-sky-500/20",
-        titleKey: "guide_step2_title",
-        descKey: "guide_step2_desc"
+        color: "from-sky-500 to-blue-600",
+        targetSelector: () => {
+          const firstDev = devices[0];
+          return firstDev ? document.getElementById(`tankBox-${firstDev.id}`) : null;
+        },
+        titleKey: "tour_step2_title",
+        descKey: "tour_step2_desc"
       },
       {
         icon: "clock",
-        color: "text-amber-400 bg-amber-500/10 border-amber-500/20 shadow-amber-500/20",
-        titleKey: "guide_step3_title",
-        descKey: "guide_step3_desc"
+        color: "from-amber-500 to-orange-600",
+        targetSelector: () => {
+          const firstDev = devices[0];
+          return firstDev ? (document.getElementById(`presetMorningTime-${firstDev.id}`)?.closest('.glass-card, .p-3.5') || document.getElementById(`card-${firstDev.id}`)) : null;
+        },
+        titleKey: "tour_step3_title",
+        descKey: "tour_step3_desc"
+      },
+      {
+        icon: "smartphone",
+        color: "from-indigo-500 to-purple-600",
+        targetSelector: () => document.getElementById("btnNavInstall") || document.getElementById("pwaInstallBanner"),
+        titleKey: "tour_step4_title",
+        descKey: "tour_step4_desc"
       }
     ];
 
-    function openWelcomeJourney(stepIndex = 0) {
-      guideStep = stepIndex;
-      renderGuideStep();
-      openModal("modalWelcomeJourney");
+    function startInteractiveTour(step = 0) {
+      tourStep = step;
+      const overlay = document.getElementById("interactiveTourOverlay");
+      if (overlay) overlay.classList.remove("hidden");
+      renderTourStep();
+      triggerHaptic("click");
     }
 
-    function renderGuideStep() {
-      const step = GUIDE_STEPS[guideStep];
-      const counter = document.getElementById("guideStepCounter");
-      const content = document.getElementById("guideStepContent");
-      const prevBtn = document.getElementById("guideBtnPrev");
-      const nextBtn = document.getElementById("guideBtnNext");
-      const dots = document.getElementById("guideDots");
+    function closeInteractiveTour() {
+      localStorage.setItem("smarttank_tour_seen", "true");
+      const overlay = document.getElementById("interactiveTourOverlay");
+      if (overlay) overlay.classList.add("hidden");
+      const ring = document.getElementById("tourSpotlightRing");
+      if (ring) ring.classList.add("hidden");
+      triggerHaptic("stop");
+    }
 
-      if (counter) counter.innerText = `Step ${guideStep + 1} of 3`;
+    function renderTourStep() {
+      const step = TOUR_STEPS[tourStep];
+      const badge = document.getElementById("tourStepBadge");
+      const iconWrap = document.getElementById("tourStepIconWrap");
+      const icon = document.getElementById("tourStepIcon");
+      const title = document.getElementById("tourStepTitle");
+      const desc = document.getElementById("tourStepDesc");
+      const prevBtn = document.getElementById("tourBtnPrev");
+      const nextBtn = document.getElementById("tourBtnNext");
+      const dots = document.getElementById("tourDots");
+      const ring = document.getElementById("tourSpotlightRing");
+      const card = document.getElementById("tourCoachCard");
 
-      if (content) {
-        content.innerHTML = `
-          <div class="w-16 h-16 mx-auto mb-4 rounded-3xl ${step.color} border flex items-center justify-center shadow-lg">
-            <i data-lucide="${step.icon}" class="w-8 h-8"></i>
-          </div>
-          <h3 class="text-base font-extrabold text-white mb-2">${t(step.titleKey)}</h3>
-          <p class="text-xs text-slate-300 leading-relaxed max-w-xs mx-auto">${t(step.descKey)}</p>
-        `;
-        lucide.createIcons();
-      }
+      if (badge) badge.innerText = (t("tour_step_counter") || "Step {step} of 4").replace("{step}", tourStep + 1);
+      if (iconWrap) iconWrap.className = `w-12 h-12 rounded-2xl bg-gradient-to-tr ${step.color} flex items-center justify-center text-white shadow-lg flex-shrink-0`;
+      if (icon) icon.setAttribute("data-lucide", step.icon);
+      if (title) title.innerText = t(step.titleKey);
+      if (desc) desc.innerText = t(step.descKey);
 
       if (dots) {
-        dots.innerHTML = [0, 1, 2].map(idx => `
-          <span class="w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === guideStep ? 'bg-sky-400 w-5' : 'bg-slate-700'}"></span>
+        dots.innerHTML = TOUR_STEPS.map((_, idx) => `
+          <span class="w-2 h-2 rounded-full transition-all duration-300 ${idx === tourStep ? 'bg-sky-400 w-4' : 'bg-slate-700'}"></span>
         `).join("");
       }
 
       if (prevBtn) {
-        prevBtn.style.visibility = guideStep === 0 ? "hidden" : "visible";
+        prevBtn.style.visibility = tourStep === 0 ? "hidden" : "visible";
         prevBtn.innerHTML = t("back");
       }
 
       if (nextBtn) {
-        if (guideStep === GUIDE_STEPS.length - 1) {
-          nextBtn.innerHTML = t("guide_got_it");
-          nextBtn.className = "w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 active:bg-emerald-500 text-white font-bold text-xs transition shadow-md shadow-emerald-600/30";
+        if (tourStep === TOUR_STEPS.length - 1) {
+          nextBtn.innerHTML = t("tour_finish") || "Finish &rarr;";
+          nextBtn.className = "px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 active:scale-95 text-white font-bold text-xs shadow-md shadow-emerald-600/30 transition";
         } else {
           nextBtn.innerHTML = t("next");
-          nextBtn.className = "w-2/3 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 active:bg-sky-500 text-white font-bold text-xs transition shadow-md shadow-sky-600/30";
+          nextBtn.className = "px-4 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 active:scale-95 text-white font-bold text-xs shadow-md shadow-sky-600/30 transition";
         }
       }
+
+      // Position spotlight around target element
+      const targetEl = step.targetSelector ? step.targetSelector() : null;
+      if (targetEl && ring && card) {
+        const rect = targetEl.getBoundingClientRect();
+        ring.classList.remove("hidden");
+        const pad = 8;
+        ring.style.top = `${rect.top + window.scrollY - pad}px`;
+        ring.style.left = `${rect.left + window.scrollX - pad}px`;
+        ring.style.width = `${rect.width + pad * 2}px`;
+        ring.style.height = `${rect.height + pad * 2}px`;
+
+        const isNearBottom = rect.top > (window.innerHeight * 0.55);
+        if (isNearBottom) {
+          card.style.bottom = "auto";
+          card.style.top = "20px";
+        } else {
+          card.style.top = "auto";
+          card.style.bottom = "24px";
+        }
+
+        targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else if (ring) {
+        ring.classList.add("hidden");
+      }
+
+      lucide.createIcons();
     }
 
-    function nextGuideStep() {
-      if (guideStep < GUIDE_STEPS.length - 1) {
-        guideStep++;
-        renderGuideStep();
+    function nextTourStep() {
+      if (tourStep < TOUR_STEPS.length - 1) {
+        tourStep++;
+        renderTourStep();
         triggerHaptic("click");
       } else {
-        localStorage.setItem("smarttank_guide_seen", "true");
-        closeModal("modalWelcomeJourney");
-        triggerHaptic("start");
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const pairId = urlParams.get("pair") || urlParams.get("id");
-        if (pairId) {
-          openModal("modalAddDevice");
-        }
+        closeInteractiveTour();
       }
     }
 
-    function prevGuideStep() {
-      if (guideStep > 0) {
-        guideStep--;
-        renderGuideStep();
+    function prevTourStep() {
+      if (tourStep > 0) {
+        tourStep--;
+        renderTourStep();
         triggerHaptic("click");
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Permanent PWA Install Engine
+    // -------------------------------------------------------------------------
+    let deferredInstallPrompt = null;
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      console.log("[PWA] Captured beforeinstallprompt!");
+      checkPwaStandalone();
+    });
+
+    window.addEventListener("appinstalled", () => {
+      deferredInstallPrompt = null;
+      appendLog("PWA", "SmartTank successfully installed on phone!", "emerald");
+      checkPwaStandalone();
+    });
+
+    function triggerPwaInstall() {
+      triggerHaptic("start");
+      playBeep(880, 0.1);
+
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === "accepted") {
+            appendLog("PWA", "User installed app to home screen.", "emerald");
+          }
+          deferredInstallPrompt = null;
+        });
+      } else {
+        openModal("modalInstallGuide");
+      }
+    }
+
+    function checkPwaStandalone() {
+      const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+      const banner = document.getElementById("pwaInstallBanner");
+      const navBtn = document.getElementById("btnNavInstall");
+      if (isStandalone) {
+        if (banner) banner.classList.add("hidden");
+        if (navBtn) navBtn.classList.add("hidden");
+      } else {
+        if (banner) banner.classList.remove("hidden");
+        if (navBtn) navBtn.classList.remove("hidden");
+      }
+    }
+
+    function copyAppUrl() {
+      triggerHaptic("click");
+      const url = window.location.origin + window.location.pathname;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          alert("App link copied! Open Chrome on your phone and paste it.");
+        }).catch(() => {
+          alert("SmartTank link: " + url);
+        });
+      } else {
+        alert("SmartTank link: " + url);
       }
     }
   </script>
@@ -1005,40 +1260,63 @@
       }
     }
 
+    function autoPairFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pairId = (urlParams.get("pair") || urlParams.get("id") || "").trim().toUpperCase();
+      const pairKey = (urlParams.get("key") || "").trim();
+
+      if (pairId && pairKey) {
+        const existing = devices.find(d => d.id === pairId);
+        if (existing) {
+          existing.key = pairKey;
+        } else {
+          devices.push({
+            id: pairId,
+            key: pairKey,
+            name: "Roof Tank Motor"
+          });
+        }
+        saveDevices();
+        appendLog("PAIR", `🎉 Controller [${pairId}] linked automatically!`, "emerald");
+        playBeep(980, 0.2);
+        // Clean URL so reload won't re-trigger
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return pairId;
+      }
+      return null;
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
-      updateLanguageUI();
 
-      // First Time Check: If user has never selected a language, ask first!
+      // 1. Auto-Pair from URL parameters immediately (Zero Clicks Needed!)
+      const autoPairedId = autoPairFromUrl();
+
+      updateLanguageUI();
+      buildDeviceDOM();
+      initMQTT();
+      fetchCloudReleaseInfo();
+      checkPwaStandalone();
+
+      // 2. First-Time Language Check
       const hasChosenLang = localStorage.getItem("smarttank_lang");
       if (!hasChosenLang) {
         openModal("modalLanguage");
       } else {
-        checkUrlParamsForPairing();
+        // If language already chosen, check if interactive tour should run
+        const hasSeenTour = localStorage.getItem("smarttank_tour_seen");
+        if (!hasSeenTour) {
+          setTimeout(() => startInteractiveTour(0), 450);
+        }
       }
 
       appendLog("SYSTEM", "SmartTank Mobile Engine active.", "sky");
-      buildDeviceDOM();
-      initMQTT();
-      fetchCloudReleaseInfo();
 
       // Fast presence watchdog (every 1.5s)
       setInterval(() => {
         updatePresenceDOM();
       }, 1500);
     });
-
-    function checkUrlParamsForPairing() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const pairId = urlParams.get("pair") || urlParams.get("id");
-      const pairKey = urlParams.get("key");
-
-      if (pairId && pairKey) {
-        document.getElementById("inputDevId").value = pairId.toUpperCase();
-        document.getElementById("inputDevKey").value = pairKey;
-        openModal("modalAddDevice");
-      }
-    }
 
     // -------------------------------------------------------------------------
     // Device Presets Manager
