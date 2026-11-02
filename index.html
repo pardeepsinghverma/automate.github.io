@@ -332,11 +332,6 @@
       lucide.createIcons();
       checkUrlParamsForPairing();
 
-      if (devices.length === 0) {
-        devices.push({ id: "TANK-C6EAD0", name: "Roof Tank Motor", key: "PASS99" });
-        saveDevices();
-      }
-
       appendLog("SYSTEM", "SmartTank Cloud Dashboard initialized.", "sky");
       buildDeviceDOM();
       initMQTT();
