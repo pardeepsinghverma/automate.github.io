@@ -2352,7 +2352,11 @@
         return;
       }
       appendLog("FLEET_OTA", "🚀 Broadcasting OTA Firmware Update to ALL Customer Devices worldwide!", "emerald");
-      mqttClient.publish("smarttank/fleet/cmd", JSON.stringify({ cmd: "check_ota" }));
+      if (cloudReleaseInfo && cloudReleaseInfo.url) {
+        mqttClient.publish("smarttank/fleet/cmd", JSON.stringify({ ota_url: cloudReleaseInfo.url }));
+      } else {
+        mqttClient.publish("smarttank/fleet/cmd", JSON.stringify({ cmd: "check_ota" }));
+      }
     }
 
     function triggerDeviceOta(devId) {
@@ -2368,7 +2372,11 @@
         statusEl.className = "text-[9px] text-sky-400 font-medium animate-pulse";
       }
       appendLog("OTA", `Requested remote Over-The-Air firmware check for [${devId}] via GitHub.`, "sky");
-      mqttClient.publish(`smarttank/${devId}/cmd`, JSON.stringify({ cmd: "check_ota" }));
+      if (cloudReleaseInfo && cloudReleaseInfo.url) {
+        mqttClient.publish(`smarttank/${devId}/cmd`, JSON.stringify({ ota_url: cloudReleaseInfo.url }));
+      } else {
+        mqttClient.publish(`smarttank/${devId}/cmd`, JSON.stringify({ cmd: "check_ota" }));
+      }
     }
 
     function handleDevicePairing(e) {
