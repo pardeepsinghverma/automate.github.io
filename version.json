@@ -1,6 +1,6 @@
 {
   "version": "2.6.0",
   "build": 260,
-  "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
+  "url": "https://raw.githubusercontent.com/pardeepsinghverma/automate.github.io/main/firmware.bin",
   "release_notes": "Added Auto Morning Water Schedule, 60m Dry-run cutoff, and GitHub Over-The-Air updates."
 }
