@@ -69,7 +69,7 @@
 
 <body class="text-slate-100 min-h-screen flex flex-col justify-between selection:bg-sky-500 selection:text-white">
 
-  <!-- Mobile-Optimized Sticky Top Navigation -->
+  <!-- Mobile Sticky Top Navigation -->
   <header class="border-b border-slate-800/80 bg-slate-950/80 sticky top-0 z-40 backdrop-blur-lg">
     <div class="max-w-md mx-auto px-4 h-15 py-3 flex items-center justify-between">
       
@@ -83,21 +83,29 @@
             Smart<span class="text-sky-400">Tank</span>
             <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PRO</span>
           </h1>
-          <p class="text-[10px] text-slate-400 font-medium mt-0.5">Real-Time Mobile Controller</p>
+          <p class="text-[10px] text-slate-400 font-medium mt-0.5" data-i18n="app_sub">Real-Time Mobile Controller</p>
         </div>
       </div>
 
-      <!-- Action Buttons -->
+      <!-- Action Buttons + Language Switcher -->
       <div class="flex items-center space-x-1.5">
+        <!-- Language Selector Pill -->
+        <button onclick="openModal('modalLanguage')"
+          class="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-slate-800/80 active:bg-slate-700 text-slate-200 border border-slate-700/80 text-xs font-bold transition shadow-sm"
+          title="Change Language">
+          <i data-lucide="globe" class="w-3.5 h-3.5 text-sky-400"></i>
+          <span id="currentLangLabel">English</span>
+        </button>
+
         <button id="btnSound" onclick="toggleSound()"
           class="p-2 rounded-xl bg-slate-800/80 active:bg-slate-700 text-slate-300 hover:text-white transition"
           title="Toggle Sound">
           <i data-lucide="volume-2" class="w-4 h-4" id="iconSound"></i>
         </button>
         <button onclick="openModal('modalAddDevice')"
-          class="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-sky-600 active:bg-sky-500 text-white font-bold text-xs transition shadow-md shadow-sky-600/30">
+          class="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-sky-600 active:bg-sky-500 text-white font-bold text-xs transition shadow-md shadow-sky-600/30">
           <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-          <span>Add</span>
+          <span data-i18n="add">Add</span>
         </button>
         <button onclick="openModal('modalQrTool')"
           class="p-2 rounded-xl bg-slate-800/80 active:bg-slate-700 text-slate-300 hover:text-white transition"
@@ -116,11 +124,11 @@
     <div class="flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800/80 text-[11px] text-slate-400">
       <div class="flex items-center space-x-2">
         <span id="mqttDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-        <span id="mqttStatusText" class="font-medium text-slate-300">Connecting Gateway...</span>
+        <span id="mqttStatusText" class="font-medium text-slate-300" data-i18n="connecting">Connecting Gateway...</span>
       </div>
       <div class="flex items-center gap-1.5 text-slate-500">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-        <span>Auto-Sync</span>
+        <span data-i18n="auto_sync">Auto-Sync</span>
       </div>
     </div>
 
@@ -134,12 +142,12 @@
       <div class="w-16 h-16 mx-auto mb-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shadow-lg shadow-sky-500/10">
         <i data-lucide="radio" class="w-8 h-8"></i>
       </div>
-      <h3 class="text-lg font-bold text-white mb-1">No Devices Paired Yet</h3>
-      <p class="text-xs text-slate-400 max-w-xs mx-auto mb-5 leading-relaxed">
+      <h3 class="text-lg font-bold text-white mb-1" data-i18n="no_devices">No Devices Paired Yet</h3>
+      <p class="text-xs text-slate-400 max-w-xs mx-auto mb-5 leading-relaxed" data-i18n="no_devices_sub">
         Plug your SmartTank controller into power, and scan the QR code on your product box to link it.
       </p>
       <button onclick="openModal('modalAddDevice')"
-        class="px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition shadow-lg shadow-sky-600/30">
+        class="px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition shadow-lg shadow-sky-600/30" data-i18n="pair_first">
         Pair Your First Device
       </button>
     </div>
@@ -149,11 +157,11 @@
       <button onclick="toggleLogVisibility()" class="w-full px-4 py-3 flex items-center justify-between text-left text-xs font-bold text-slate-300 active:bg-slate-800/50 transition">
         <div class="flex items-center space-x-2">
           <i data-lucide="history" class="w-4 h-4 text-sky-400"></i>
-          <span>Live Activity & Events</span>
+          <span data-i18n="live_activity">Live Activity & Events</span>
           <span id="logCountBadge" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-sky-500/15 text-sky-400 border border-sky-500/30">0</span>
         </div>
         <div class="flex items-center space-x-2 text-slate-400">
-          <span id="logToggleLabel" class="text-[11px] font-normal text-slate-400">View Log</span>
+          <span id="logToggleLabel" class="text-[11px] font-normal text-slate-400" data-i18n="view_log">View Log</span>
           <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200" id="logChevron"></i>
         </div>
       </button>
@@ -161,8 +169,8 @@
       <!-- Collapsible Container (Hidden by default to save mobile screen space) -->
       <div id="logBody" class="hidden border-t border-slate-800/80 p-3 bg-slate-950/70">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-[10px] uppercase font-bold text-slate-500">Real-Time Event Stream</span>
-          <button onclick="clearLogs()" class="text-[10px] text-slate-400 hover:text-white px-2 py-0.5 rounded hover:bg-slate-800 transition">
+          <span class="text-[10px] uppercase font-bold text-slate-500" data-i18n="stream_title">Real-Time Event Stream</span>
+          <button onclick="clearLogs()" class="text-[10px] text-slate-400 hover:text-white px-2 py-0.5 rounded hover:bg-slate-800 transition" data-i18n="clear">
             Clear
           </button>
         </div>
@@ -180,43 +188,118 @@
   </footer>
 
   <!-- ========================================================================= -->
+  <!-- MODAL: LANGUAGE SELECTION (First-Time & On-Demand)                        -->
+  <!-- ========================================================================= -->
+  <div id="modalLanguage" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-card rounded-3xl w-full max-w-sm p-6 border border-slate-700 shadow-2xl">
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 mx-auto mb-2 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+          <i data-lucide="languages" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white" data-i18n="choose_lang">Choose Your Language</h3>
+        <p class="text-xs text-slate-400 mt-1" data-i18n="choose_lang_sub">अपनी भाषा चुनें / Choose preferred language</p>
+      </div>
+
+      <!-- Language Options Grid -->
+      <div class="grid grid-cols-1 gap-2.5 mb-5" id="langOptions">
+        <!-- English -->
+        <button onclick="selectLanguage('en')" id="optLang-en"
+          class="flex items-center justify-between p-3.5 rounded-2xl border transition active:scale-98 bg-slate-900/80 border-slate-700 hover:border-sky-500">
+          <div class="flex items-center space-x-3">
+            <span class="text-xl">🇬🇧</span>
+            <div class="text-left">
+              <div class="text-sm font-bold text-white">English</div>
+              <div class="text-[11px] text-slate-400">Default International</div>
+            </div>
+          </div>
+          <span class="check-icon text-sky-400 font-bold hidden">✓</span>
+        </button>
+
+        <!-- Hindi -->
+        <button onclick="selectLanguage('hi')" id="optLang-hi"
+          class="flex items-center justify-between p-3.5 rounded-2xl border transition active:scale-98 bg-slate-900/80 border-slate-700 hover:border-sky-500">
+          <div class="flex items-center space-x-3">
+            <span class="text-xl">🇮🇳</span>
+            <div class="text-left">
+              <div class="text-sm font-bold text-white">हिंदी (Hindi)</div>
+              <div class="text-[11px] text-slate-400">आसान घरेलू हिंदी</div>
+            </div>
+          </div>
+          <span class="check-icon text-sky-400 font-bold hidden">✓</span>
+        </button>
+
+        <!-- Hinglish -->
+        <button onclick="selectLanguage('hinglish')" id="optLang-hinglish"
+          class="flex items-center justify-between p-3.5 rounded-2xl border transition active:scale-98 bg-slate-900/80 border-slate-700 hover:border-sky-500">
+          <div class="flex items-center space-x-3">
+            <span class="text-xl">🗣️</span>
+            <div class="text-left">
+              <div class="text-sm font-bold text-white">Hinglish</div>
+              <div class="text-[11px] text-slate-400">Motor Chalu / Band</div>
+            </div>
+          </div>
+          <span class="check-icon text-sky-400 font-bold hidden">✓</span>
+        </button>
+
+        <!-- Punjabi -->
+        <button onclick="selectLanguage('pa')" id="optLang-pa"
+          class="flex items-center justify-between p-3.5 rounded-2xl border transition active:scale-98 bg-slate-900/80 border-slate-700 hover:border-sky-500">
+          <div class="flex items-center space-x-3">
+            <span class="text-xl">🌾</span>
+            <div class="text-left">
+              <div class="text-sm font-bold text-white">ਪੰਜਾਬੀ (Punjabi)</div>
+              <div class="text-[11px] text-slate-400">ਪਾਣੀ ਵਾਲੀ ਟੈਂਕੀ</div>
+            </div>
+          </div>
+          <span class="check-icon text-sky-400 font-bold hidden">✓</span>
+        </button>
+      </div>
+
+      <button onclick="confirmLanguageSelection()"
+        class="w-full py-3 rounded-2xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 text-white font-bold text-sm transition shadow-lg shadow-sky-600/30">
+        <span data-i18n="continue">Continue / आगे बढ़ें &rarr;</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
   <!-- MODAL: ADD / PAIR DEVICE                                                  -->
   <!-- ========================================================================= -->
   <div id="modalAddDevice" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="glass-card rounded-3xl w-full max-w-sm p-6 border border-slate-700 shadow-2xl">
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <i data-lucide="cpu" class="w-5 h-5 text-sky-400"></i> Pair New Controller
+          <i data-lucide="cpu" class="w-5 h-5 text-sky-400"></i> <span data-i18n="pair_new">Pair New Controller</span>
         </h3>
         <button onclick="closeModal('modalAddDevice')" class="text-slate-400 hover:text-white p-1">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+      <p class="text-xs text-slate-400 mb-4 leading-relaxed" data-i18n="pair_box_sub">
         Enter the Device ID and Secret Key printed on your product box sticker.
       </p>
 
       <form id="formAddDevice" onsubmit="handleDevicePairing(event)">
         <div class="space-y-3">
           <div>
-            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Device ID</label>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1" data-i18n="lbl_device_id">Device ID</label>
             <input type="text" id="inputDevId" placeholder="e.g. TANK-C6EAD0" required
               class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white focus:border-sky-500 focus:outline-none uppercase font-mono">
           </div>
           <div>
-            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pairing Secret Key</label>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1" data-i18n="lbl_secret_key">Pairing Secret Key</label>
             <input type="text" id="inputDevKey" placeholder="e.g. PASS99" required
               class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white focus:border-sky-500 focus:outline-none uppercase font-mono">
           </div>
           <div>
-            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Device Nickname</label>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1" data-i18n="lbl_nickname">Device Nickname</label>
             <input type="text" id="inputDevName" value="Roof Tank Motor" required
               class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-sm text-white focus:border-sky-500 focus:outline-none">
           </div>
 
           <button type="submit"
-            class="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-sm transition shadow-lg shadow-sky-600/30 mt-2">
+            class="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-sm transition shadow-lg shadow-sky-600/30 mt-2" data-i18n="link_btn">
             Link Controller
           </button>
         </div>
@@ -259,6 +342,247 @@
       </div>
     </div>
   </div>
+
+  <!-- ========================================================================= -->
+  <!-- MULTILINGUAL DICTIONARY & LOGIC (i18n Engine)                             -->
+  <!-- ========================================================================= -->
+  <script>
+    const I18N = {
+      en: {
+        label: "English",
+        app_sub: "Real-Time Mobile Controller",
+        add: "Add",
+        connecting: "Connecting Gateway...",
+        auto_sync: "Auto-Sync",
+        no_devices: "No Devices Paired Yet",
+        no_devices_sub: "Plug your SmartTank controller into power, and scan the QR code on your product box to link it.",
+        pair_first: "Pair Your First Device",
+        live_activity: "Live Activity & Events",
+        view_log: "View Log",
+        hide_log: "Hide Log",
+        stream_title: "Real-Time Event Stream",
+        clear: "Clear",
+        choose_lang: "Choose Your Language",
+        choose_lang_sub: "Select language for the dashboard. Change anytime from the top bar.",
+        continue: "Continue &rarr;",
+        pair_new: "Pair New Controller",
+        pair_box_sub: "Enter the Device ID and Secret Key printed on your product box sticker.",
+        lbl_device_id: "Device ID",
+        lbl_secret_key: "Pairing Secret Key",
+        lbl_nickname: "Device Nickname",
+        link_btn: "Link Controller",
+        start_motor: "START MOTOR",
+        stop_motor: "STOP MOTOR",
+        tap_to_run: "TAP TO RUN",
+        tap_to_stop: "TAP TO SHUT OFF",
+        motor_running: "MOTOR RUNNING",
+        motor_stopped: "MOTOR STOPPED",
+        tank_header: "Overhead Tank",
+        tank_normal: "Normal / Refill Ready",
+        tank_full: "💧 100% FULL (Auto-Cut)",
+        badge_full: "FULL",
+        badge_normal: "NORMAL",
+        online: "ONLINE",
+        offline: "OFFLINE",
+        connecting_hw: "Connecting to controller...",
+        offline_msg: "Device is offline or lost Wi-Fi",
+        check_controller: "CHECK CONTROLLER",
+        remove: "Remove",
+        confirm_remove: "Remove device {id} from this phone?",
+        uptime: "Uptime",
+        run: "Run"
+      },
+      hi: {
+        label: "हिंदी",
+        app_sub: "लाइव मोबाइल कंट्रोलर",
+        add: "जोड़ें",
+        connecting: "गेटवे से जुड़ रहा है...",
+        auto_sync: "ऑटो-सिंक",
+        no_devices: "कोई कंट्रोलर कनेक्ट नहीं है",
+        no_devices_sub: "अपने स्मार्टटैंक कंट्रोलर को चालू करें और बॉक्स पर दिए गए क्यूआर कोड को स्कैन करें।",
+        pair_first: "पहला कंट्रोलर जोड़ें",
+        live_activity: "लाइव गतिविधि और लॉग",
+        view_log: "लॉग देखें",
+        hide_log: "लॉग छुपाएं",
+        stream_title: "लाइव इवेंट स्ट्रीम",
+        clear: "साफ करें",
+        choose_lang: "अपनी भाषा चुनें",
+        choose_lang_sub: "डैशबोर्ड के लिए अपनी भाषा चुनें। इसे कभी भी ऊपर से बदल सकते हैं।",
+        continue: "आगे बढ़ें &rarr;",
+        pair_new: "नया कंट्रोलर जोड़ें",
+        pair_box_sub: "अपने बॉक्स पर छपा डिवाइस आईडी और सीक्रेट की दर्ज करें।",
+        lbl_device_id: "डिवाइस आईडी (Device ID)",
+        lbl_secret_key: "सीक्रेट की (Secret Key)",
+        lbl_nickname: "कंट्रोलर का नाम",
+        link_btn: "कंट्रोलर कनेक्ट करें",
+        start_motor: "मोटर चालू करें",
+        stop_motor: "मोटर बंद करें",
+        tap_to_run: "चालू करने के लिए दबाएं",
+        tap_to_stop: "बंद करने के लिए दबाएं",
+        motor_running: "मोटर चालू है",
+        motor_stopped: "मोटर बंद है",
+        tank_header: "छत की पानी की टंकी",
+        tank_normal: "पानी सामान्य / भरने को तैयार",
+        tank_full: "💧 टंकी पूरी भर गई (ऑटो-कट)",
+        badge_full: "फुल (100%)",
+        badge_normal: "तैयार",
+        online: "ऑनलाइन",
+        offline: "ऑफलाइन",
+        connecting_hw: "कंट्रोलर से जुड़ रहा है...",
+        offline_msg: "डिवाइस बंद है या वाई-फाई कटा है",
+        check_controller: "कंट्रोलर चेक करें",
+        remove: "हटाएं",
+        confirm_remove: "क्या आप डिवाइस {id} को इस फोन से हटाना चाहते हैं?",
+        uptime: "चालू समय",
+        run: "रन"
+      },
+      hinglish: {
+        label: "Hinglish",
+        app_sub: "Live Mobile Controller",
+        add: "Add",
+        connecting: "Connecting Gateway...",
+        auto_sync: "Auto-Sync",
+        no_devices: "Koi Controller Linked Nahi Hai",
+        no_devices_sub: "SmartTank controller ko power on karein aur box ka QR code scan karein.",
+        pair_first: "Pehla Controller Jodein",
+        live_activity: "Live Activity & Logs",
+        view_log: "Log Dekhein",
+        hide_log: "Log Chupayein",
+        stream_title: "Real-Time Event Stream",
+        clear: "Clear",
+        choose_lang: "Apni Language Chunein",
+        choose_lang_sub: "Dashboard ke liye language chunein. Top bar se kabhi bhi change kar sakte hain.",
+        continue: "Aage Badhein &rarr;",
+        pair_new: "Naya Controller Jodein",
+        pair_box_sub: "Box par likha Device ID aur Secret Key enter karein.",
+        lbl_device_id: "Device ID",
+        lbl_secret_key: "Secret Pairing Key",
+        lbl_nickname: "Device Ka Naam",
+        link_btn: "Controller Link Karein",
+        start_motor: "START MOTOR",
+        stop_motor: "STOP MOTOR",
+        tap_to_run: "MOTOR CHALANE KE LIYE DABAYE",
+        tap_to_stop: "MOTOR BAND KARNE KE LIYE DABAYE",
+        motor_running: "MOTOR CHALU HAI",
+        motor_stopped: "MOTOR BAND HAI",
+        tank_header: "Chhat Ki Tanki",
+        tank_normal: "Normal / Bharne Ke Liye Ready",
+        tank_full: "💧 TANKI 100% FULL (Auto-Cut)",
+        badge_full: "FULL",
+        badge_normal: "READY",
+        online: "ONLINE",
+        offline: "OFFLINE",
+        connecting_hw: "Connecting to controller...",
+        offline_msg: "Device offline hai ya Wi-Fi disconnected",
+        check_controller: "CHECK CONTROLLER",
+        remove: "Remove",
+        confirm_remove: "Device {id} ko remove karein?",
+        uptime: "Uptime",
+        run: "Run"
+      },
+      pa: {
+        label: "ਪੰਜਾਬੀ",
+        app_sub: "ਲਾਈਵ ਮੋਬਾਈਲ ਕੰਟਰੋਲਰ",
+        add: "ਜੋੜੋ",
+        connecting: "ਗੇਟਵੇਅ ਨਾਲ ਜੁੜ ਰਿਹਾ ਹੈ...",
+        auto_sync: "ਆਟੋ-ਸਿੰਕ",
+        no_devices: "ਕੋਈ ਕੰਟਰੋਲਰ ਕਨੈਕਟ ਨਹੀਂ ਹੈ",
+        no_devices_sub: "ਆਪਣੇ ਸਮਾਰਟਟੈਂਕ ਕੰਟਰੋਲਰ ਨੂੰ ਚਾਲੂ ਕਰੋ ਅਤੇ ਬਕਸੇ ਉੱਤੇ ਕਿਊਆਰ ਕੋਡ ਸਕੈਨ ਕਰੋ।",
+        pair_first: "ਪਹਿਲਾ ਕੰਟਰੋਲਰ ਜੋੜੋ",
+        live_activity: "ਲਾਈਵ ਗਤੀਵਿਧੀ ਅਤੇ ਲੌਗ",
+        view_log: "ਲੌਗ ਦੇਖੋ",
+        hide_log: "ਲੌਗ ਛੁਪਾਓ",
+        stream_title: "ਰੀਅਲ-ਟਾਈਮ ਈਵੈਂਟ ਸਟ੍ਰੀਮ",
+        clear: "ਸਾਫ਼ ਕਰੋ",
+        choose_lang: "ਆਪਣੀ ਭਾਸ਼ਾ ਚੁਣੋ",
+        choose_lang_sub: "ਡੈਸ਼ਬੋਰਡ ਲਈ ਭਾਸ਼ਾ ਚੁਣੋ। ਤੁਸੀਂ ਇਸਨੂੰ ਕਦੇ ਵੀ ਉੱਪਰੋਂ ਬਦਲ ਸਕਦੇ ਹੋ।",
+        continue: "ਅੱਗੇ ਵਧੋ &rarr;",
+        pair_new: "ਨਵਾਂ ਕੰਟਰੋਲਰ ਜੋੜੋ",
+        pair_box_sub: "ਬਾਕਸ 'ਤੇ ਛਪਿਆ ਡਿਵਾਈਸ ਆਈਡੀ ਅਤੇ ਸੀਕ੍ਰੇਟ ਕੀ ਦਰਜ ਕਰੋ।",
+        lbl_device_id: "ਡਿਵਾਈਸ ਆਈਡੀ (Device ID)",
+        lbl_secret_key: "ਸੀਕ੍ਰੇਟ ਕੀ (Secret Key)",
+        lbl_nickname: "ਕੰਟਰੋਲਰ ਦਾ ਨਾਮ",
+        link_btn: "ਕੰਟਰੋਲਰ ਕਨੈਕਟ ਕਰੋ",
+        start_motor: "ਮੋਟਰ ਚਾਲੂ ਕਰੋ",
+        stop_motor: "ਮੋਟਰ ਬੰਦ ਕਰੋ",
+        tap_to_run: "ਚਲਾਉਣ ਲਈ ਦਬਾਓ",
+        tap_to_stop: "ਬੰਦ ਕਰਨ ਲਈ ਦਬਾਓ",
+        motor_running: "ਮੋਟਰ ਚੱਲ ਰਹੀ ਹੈ",
+        motor_stopped: "ਮੋਟਰ ਬੰਦ ਹੈ",
+        tank_header: "ਛੱਤ ਦੀ ਪਾਣੀ ਵਾਲੀ ਟੈਂਕੀ",
+        tank_normal: "ਪਾਣੀ ਆਮ / ਭਰਨ ਲਈ ਤਿਆਰ",
+        tank_full: "💧 ਟੈਂਕੀ ਪੂਰੀ ਭਰ ਗਈ (ਆਟੋ-ਕੱਟ)",
+        badge_full: "ਫੁੱਲ (100%)",
+        badge_normal: "ਤਿਆਰ",
+        online: "ਔਨਲਾਈਨ",
+        offline: "ਔਫਲਾਈਨ",
+        connecting_hw: "ਕੰਟਰੋਲਰ ਨਾਲ ਜੁੜ ਰਿਹਾ ਹੈ...",
+        offline_msg: "ਡਿਵਾਈਸ ਬੰਦ ਹੈ ਜਾਂ ਵਾਈ-ਫਾਈ ਨਹੀਂ ਹੈ",
+        check_controller: "ਕੰਟਰੋਲਰ ਚੈੱਕ ਕਰੋ",
+        remove: "ਹਟਾਓ",
+        confirm_remove: "ਕੀ ਤੁਸੀਂ ਡਿਵਾਈਸ {id} ਨੂੰ ਹਟਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ?",
+        uptime: "ਚਾਲੂ ਸਮਾਂ",
+        run: "ਰਨ"
+      }
+    };
+
+    let currentLang = localStorage.getItem("smarttank_lang") || "en";
+    let pendingFirstPair = false;
+
+    function t(key) {
+      const dict = I18N[currentLang] || I18N["en"];
+      return dict[key] || I18N["en"][key] || key;
+    }
+
+    function selectLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem("smarttank_lang", lang);
+      updateLanguageUI();
+      triggerHaptic("click");
+    }
+
+    function updateLanguageUI() {
+      // Update radio checkmark visuals in modal
+      ["en", "hi", "hinglish", "pa"].forEach(l => {
+        const btn = document.getElementById(`optLang-${l}`);
+        const icon = btn.querySelector(".check-icon");
+        if (l === currentLang) {
+          btn.className = "flex items-center justify-between p-3.5 rounded-2xl border transition active:scale-98 bg-sky-950/40 border-sky-400 ring-2 ring-sky-500/20";
+          icon.classList.remove("hidden");
+        } else {
+          btn.className = "flex items-center justify-between p-3.5 rounded-2xl border transition active:scale-98 bg-slate-900/80 border-slate-700 hover:border-slate-500";
+          icon.classList.add("hidden");
+        }
+      });
+
+      // Update current label in header
+      const langLabel = document.getElementById("currentLangLabel");
+      if (langLabel) {
+        langLabel.innerText = I18N[currentLang].label;
+      }
+
+      // Update all static data-i18n tags
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        el.innerHTML = t(key);
+      });
+
+      // Re-render device cards in selected language
+      buildDeviceDOM();
+    }
+
+    function confirmLanguageSelection() {
+      closeModal("modalLanguage");
+      triggerHaptic("start");
+
+      // If user came via QR code pairing link, proceed straight to pairing modal
+      const urlParams = new URLSearchParams(window.location.search);
+      const pairId = urlParams.get("pair") || urlParams.get("id");
+      if (pairId) {
+        openModal("modalAddDevice");
+      }
+    }
+  </script>
 
   <!-- ========================================================================= -->
   <!-- APPLICATION SCRIPTS (Real-Time Sub-30ms Engine)                           -->
@@ -337,17 +661,25 @@
       if (isHidden) {
         body.classList.remove("hidden");
         chevron.style.transform = "rotate(180deg)";
-        label.innerText = "Hide Log";
+        label.innerText = t("hide_log");
       } else {
         body.classList.add("hidden");
         chevron.style.transform = "rotate(0deg)";
-        label.innerText = "View Log";
+        label.innerText = t("view_log");
       }
     }
 
     window.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
-      checkUrlParamsForPairing();
+      updateLanguageUI();
+
+      // First Time Check: If user has never selected a language, ask first!
+      const hasChosenLang = localStorage.getItem("smarttank_lang");
+      if (!hasChosenLang) {
+        openModal("modalLanguage");
+      } else {
+        checkUrlParamsForPairing();
+      }
 
       appendLog("SYSTEM", "SmartTank Mobile Engine active.", "sky");
       buildDeviceDOM();
@@ -392,7 +724,7 @@
 
       mqttClient.on("reconnect", () => {
         document.getElementById("mqttDot").className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
-        document.getElementById("mqttStatusText").innerText = "Reconnecting...";
+        document.getElementById("mqttStatusText").innerText = t("connecting");
       });
 
       mqttClient.on("close", () => {
@@ -433,7 +765,7 @@
         deviceStates[devId].online = isOnline;
         deviceStates[devId].lastSeen = Date.now();
         updatePresenceDOM();
-        appendLog("STATUS", `[${devId}] is ${isOnline ? "ONLINE" : "OFFLINE"}`, isOnline ? "emerald" : "rose");
+        appendLog("STATUS", `[${devId}] is ${isOnline ? t("online") : t("offline")}`, isOnline ? "emerald" : "rose");
       }
       else if (type === "state") {
         const wasOnline = deviceStates[devId].online;
@@ -459,7 +791,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // Mobile-First Device Card Builder
+    // Mobile-First Device Card Builder (i18n Aware)
     // -------------------------------------------------------------------------
     function buildDeviceDOM() {
       const container = document.getElementById("deviceContainer");
@@ -486,13 +818,13 @@
                 <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 uppercase">${dev.id}</span>
               </div>
               <p class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5" id="subtext-${dev.id}">
-                <span>Connecting to controller...</span>
+                <span>${t("connecting_hw")}</span>
               </p>
             </div>
 
             <div class="flex items-center space-x-1.5">
               <span id="badge-${dev.id}" class="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> OFFLINE
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> ${t("offline")}
               </span>
               <a href="https://t.me/YourSmartTankBot?start=${dev.id}" target="_blank"
                  class="p-1.5 rounded-xl bg-sky-500/10 active:bg-sky-500/20 text-sky-400 border border-sky-500/20 transition"
@@ -509,12 +841,12 @@
                 <i data-lucide="waves" class="w-5 h-5" id="tankIcon-${dev.id}"></i>
               </div>
               <div>
-                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Overhead Tank</div>
-                <div class="text-sm font-bold text-slate-200" id="tankText-${dev.id}">Checking water sensor...</div>
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">${t("tank_header")}</div>
+                <div class="text-sm font-bold text-slate-200" id="tankText-${dev.id}">${t("connecting_hw")}</div>
               </div>
             </div>
             <div id="tankIndicator-${dev.id}" class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 border border-slate-700">
-              NORMAL
+              ${t("badge_normal")}
             </div>
           </div>
 
@@ -523,8 +855,8 @@
             <button id="btnAction-${dev.id}" onclick="triggerMotorToggle('${dev.id}')" disabled
                     class="w-40 h-40 rounded-full flex flex-col items-center justify-center gap-1 transition-all duration-300 transform active:scale-95 shadow-2xl bg-slate-800 border-4 border-slate-700 text-slate-500 cursor-not-allowed">
               <i data-lucide="power" class="w-10 h-10 mb-0.5" id="btnIcon-${dev.id}"></i>
-              <span id="btnStateText-${dev.id}" class="text-sm font-black tracking-wider uppercase">OFFLINE</span>
-              <span id="btnSubText-${dev.id}" class="text-[10px] font-medium opacity-80">CONNECTING...</span>
+              <span id="btnStateText-${dev.id}" class="text-sm font-black tracking-wider uppercase">${t("offline")}</span>
+              <span id="btnSubText-${dev.id}" class="text-[10px] font-medium opacity-80">${t("connecting")}</span>
             </button>
           </div>
 
@@ -532,11 +864,11 @@
           <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
             <div class="flex items-center space-x-2">
               <span id="dotMotor-${dev.id}" class="w-2 h-2 rounded-full bg-slate-600"></span>
-              <span id="motorStateText-${dev.id}" class="font-bold text-slate-400">DISCONNECTED</span>
+              <span id="motorStateText-${dev.id}" class="font-bold text-slate-400">${t("motor_stopped")}</span>
             </div>
             <div class="flex items-center space-x-2.5">
-              <span id="footerInfo-${dev.id}" class="text-slate-500">Uptime: --</span>
-              <button onclick="removeDevice('${dev.id}')" class="text-rose-400/80 hover:text-rose-400 active:underline text-[11px]">Remove</button>
+              <span id="footerInfo-${dev.id}" class="text-slate-500">${t("uptime")}: --</span>
+              <button onclick="removeDevice('${dev.id}')" class="text-rose-400/80 hover:text-rose-400 active:underline text-[11px]">${t("remove")}</button>
             </div>
           </div>
 
@@ -568,23 +900,23 @@
 
         if (isRunning) {
           btn.className = "w-40 h-40 rounded-full flex flex-col items-center justify-center gap-1 transition-all duration-300 transform active:scale-95 shadow-2xl bg-gradient-to-tr from-rose-600 to-red-500 border-4 border-rose-400 text-white shadow-rose-600/40 motor-running-anim";
-          if (btnStateText) btnStateText.innerText = "STOP MOTOR";
-          if (btnSubText) btnSubText.innerText = "TAP TO SHUT OFF";
+          if (btnStateText) btnStateText.innerText = t("stop_motor");
+          if (btnSubText) btnSubText.innerText = t("tap_to_stop");
         } else {
           btn.className = "w-40 h-40 rounded-full flex flex-col items-center justify-center gap-1 transition-all duration-300 transform active:scale-95 shadow-2xl bg-gradient-to-tr from-emerald-600 to-green-500 border-4 border-emerald-400 text-white shadow-emerald-600/40";
-          if (btnStateText) btnStateText.innerText = "START MOTOR";
-          if (btnSubText) btnSubText.innerText = "TAP TO RUN";
+          if (btnStateText) btnStateText.innerText = t("start_motor");
+          if (btnSubText) btnSubText.innerText = t("tap_to_run");
         }
       }
 
       if (motorStateText && dotMotor) {
         if (isRunning) {
           motorStateText.className = "font-bold text-emerald-400";
-          motorStateText.innerText = "MOTOR RUNNING";
+          motorStateText.innerText = t("motor_running");
           dotMotor.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
         } else {
           motorStateText.className = "font-bold text-slate-300";
-          motorStateText.innerText = "MOTOR STOPPED";
+          motorStateText.innerText = t("motor_stopped");
           dotMotor.className = "w-2 h-2 rounded-full bg-slate-500";
         }
       }
@@ -596,16 +928,16 @@
       if (tankText && tankIndicator && tankWrap) {
         if (isFull) {
           tankText.className = "text-sm font-bold text-emerald-400";
-          tankText.innerText = "💧 100% FULL (Auto-Cut)";
+          tankText.innerText = t("tank_full");
           tankWrap.className = "w-10 h-10 rounded-xl flex items-center justify-center transition bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
           tankIndicator.className = "text-[10px] font-bold px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30";
-          tankIndicator.innerText = "FULL";
+          tankIndicator.innerText = t("badge_full");
         } else {
           tankText.className = "text-sm font-bold text-slate-200";
-          tankText.innerText = "Normal / Refill Ready";
+          tankText.innerText = t("tank_normal");
           tankWrap.className = "w-10 h-10 rounded-xl flex items-center justify-center transition bg-slate-800 text-slate-400";
           tankIndicator.className = "text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 border border-slate-700";
-          tankIndicator.innerText = "NORMAL";
+          tankIndicator.innerText = t("badge_normal");
         }
       }
 
@@ -614,8 +946,8 @@
         const runSec = data.runTime || 0;
         const runMins = Math.floor(runSec / 60);
         const runSecs = runSec % 60;
-        const runStr = isRunning ? `Run: ${runMins}m ${runSecs}s • ` : "";
-        footer.innerText = `${runStr}Uptime: ${Math.floor((data.uptime || 0) / 60)}m`;
+        const runStr = isRunning ? `${t("run")}: ${runMins}m ${runSecs}s • ` : "";
+        footer.innerText = `${runStr}${t("uptime")}: ${Math.floor((data.uptime || 0) / 60)}m`;
       }
     }
 
@@ -637,25 +969,25 @@
 
         if (isOnline) {
           badge.className = "flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ONLINE';
+          badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ${t("online")}`;
 
           if (subtext) {
             subtext.innerHTML = `<span>Wi-Fi Signal: <b class="text-slate-200">${state.rssi || -60} dBm</b></span>`;
           }
         } else {
           badge.className = "flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20";
-          badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> OFFLINE';
+          badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> ${t("offline")}`;
 
           if (subtext) {
-            subtext.innerHTML = `<span>Device is offline or lost Wi-Fi</span>`;
+            subtext.innerHTML = `<span>${t("offline_msg")}</span>`;
           }
 
           if (btn) {
             btn.disabled = true;
             btn.style.cursor = "not-allowed";
             btn.className = "w-40 h-40 rounded-full flex flex-col items-center justify-center gap-1 transition-all duration-300 shadow-xl bg-slate-800 border-4 border-slate-700 text-slate-500 cursor-not-allowed";
-            if (btnStateText) btnStateText.innerText = "OFFLINE";
-            if (btnSubText) btnSubText.innerText = "CHECK CONTROLLER";
+            if (btnStateText) btnStateText.innerText = t("offline");
+            if (btnSubText) btnSubText.innerText = t("check_controller");
           }
         }
       });
@@ -714,7 +1046,8 @@
     }
 
     function removeDevice(devId) {
-      if (confirm(`Remove device ${devId} from this phone?`)) {
+      const msg = t("confirm_remove").replace("{id}", devId);
+      if (confirm(msg)) {
         devices = devices.filter(d => d.id !== devId);
         saveDevices();
         buildDeviceDOM();
