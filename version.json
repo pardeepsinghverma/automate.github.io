@@ -1,10 +1,16 @@
 {
-  "version": "2.7.0",
-  "build": 270,
+  "version": "2.7.1",
+  "build": 271,
   "release_date": "2026-11-03",
   "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
-  "release_notes": "Persistent Non-Volatile Run Cycle Logging in EEPROM (Start/Stop triggers, duration, timestamps) with 50-year zero flash wear, MQTT cycle telemetry, and weekly usage analytics.",
+  "release_notes": "Wireless Over-The-Air GitHub fleet verification update with 16KB BearSSL buffer and automatic socket cleanup.",
   "changelog": [
+    {
+      "version": "2.7.1",
+      "build": 271,
+      "date": "2026-11-03",
+      "notes": "Verified wireless Over-The-Air update from GitHub Pages with expanded 16KB TLS buffer."
+    },
     {
       "version": "2.7.0",
       "build": 270,
