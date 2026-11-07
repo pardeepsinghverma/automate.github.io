@@ -1684,6 +1684,11 @@
         updatePresenceDOM();
       }
       else if (type === "alert") {
+        if (otaWatchdogTimers[devId]) {
+          if (data.type === "OTA_FAILED" || data.type === "OTA_LATEST" || data.type === "OTA_BLOCKED") {
+            clearTimeout(otaWatchdogTimers[devId]);
+          }
+        }
         appendLog("ALERT", `[${data.type}] ${data.msg}`, "amber");
         playBeep(650, 0.25, "triangle");
 
@@ -2398,6 +2403,21 @@
         document.getElementById("modalFwNotes").innerText = "Over-The-Air automatic GitHub firmware updater active.";
       }
 
+      // Check device presence for modal button state
+      const isOnline = deviceStates[devId] && deviceStates[devId].online === true;
+      const modalBtnUpdate = document.getElementById("modalFwBtnUpdate");
+      if (modalBtnUpdate) {
+        if (!isOnline) {
+          modalBtnUpdate.disabled = true;
+          modalBtnUpdate.className = "w-full py-3 rounded-xl bg-slate-800 text-slate-500 font-bold text-xs border border-slate-700 transition flex items-center justify-center gap-1.5 cursor-not-allowed";
+          modalBtnUpdate.innerHTML = `<i data-lucide="power-off" class="w-4 h-4"></i><span>Controller Offline (Power On Device)</span>`;
+        } else {
+          modalBtnUpdate.disabled = false;
+          modalBtnUpdate.className = "w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-sky-600/30 transition flex items-center justify-center gap-1.5 cursor-pointer";
+          modalBtnUpdate.innerHTML = `<i data-lucide="download-cloud" class="w-4 h-4"></i><span>Check & Install Update (OTA)</span>`;
+        }
+      }
+
       openModal("modalFirmwareInfo");
       triggerHaptic("click");
     }
@@ -2424,13 +2444,23 @@
       }
     }
 
+    let otaWatchdogTimers = {};
+
     function triggerDeviceOta(devId) {
       triggerHaptic("click");
       playBeep(800, 0.08, "sine");
       if (!mqttClient || !mqttClient.connected) {
-        alert("Cloud gateway offline!");
+        alert("Cloud gateway offline! Please check internet connection.");
         return;
       }
+
+      const isOnline = deviceStates[devId] && deviceStates[devId].online === true;
+      if (!isOnline) {
+        alert("⚠️ Controller is Offline!\n\nPlease turn ON power to your SmartTank controller and wait until it connects to Wi-Fi before updating.");
+        appendLog("OTA_BLOCKED", `Cannot update [${devId}]: Controller is currently OFFLINE.`, "rose");
+        return;
+      }
+
       const statusEl = document.getElementById(`otaStatusText-${devId}`);
       if (statusEl) {
         statusEl.innerText = t("ota_checking");
@@ -2442,6 +2472,17 @@
       } else {
         mqttClient.publish(`smarttank/${devId}/cmd`, JSON.stringify({ cmd: "check_ota" }));
       }
+
+      // 25-Second Watchdog Timer: Prevents UI from staying in indefinite loading state if device drops
+      if (otaWatchdogTimers[devId]) clearTimeout(otaWatchdogTimers[devId]);
+      otaWatchdogTimers[devId] = setTimeout(() => {
+        const el = document.getElementById(`otaStatusText-${devId}`);
+        if (el && el.innerText.includes(t("ota_checking"))) {
+          el.innerText = "Timeout: No response";
+          el.className = "text-[9px] text-rose-400 font-bold";
+          appendLog("OTA_TIMEOUT", `[${devId}] OTA check timed out: Device did not respond within 25 seconds.`, "rose");
+        }
+      }, 25000);
     }
 
     function handleDevicePairing(e) {
