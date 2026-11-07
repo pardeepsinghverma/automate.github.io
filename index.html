@@ -1564,6 +1564,22 @@
       }
     }
 
+    function toggleRelayPolarity(devId) {
+      const state = deviceStates[devId] || {};
+      const currentActiveLow = (typeof state.activeLow !== "undefined") ? state.activeLow : 1;
+      const newActiveLow = currentActiveLow === 1 ? 0 : 1;
+      state.activeLow = newActiveLow;
+      deviceStates[devId] = state;
+      const lbl = document.getElementById(`relayPolarityLabel-${devId}`);
+      if (lbl) lbl.innerText = newActiveLow ? "Active-LOW" : "Active-HIGH";
+      if (mqttClient && mqttClient.connected) {
+        mqttClient.publish(`smarttank/${devId}/cmd`, JSON.stringify({ relay_active_low: newActiveLow }), { qos: 1 });
+        appendLog("CONFIG", `Switched relay driver polarity for [${devId}] to Active-${newActiveLow ? "LOW" : "HIGH"}`, "sky");
+      }
+      triggerHaptic("click");
+      playBeep(750, 0.1);
+    }
+
     // -------------------------------------------------------------------------
     // MQTT Engine (WebSockets + Sub-30ms Fast Path)
     // -------------------------------------------------------------------------
@@ -2097,6 +2113,25 @@
                 </div>
               </div>
 
+              <!-- Preset 4: Relay Driver Polarity (Active-LOW / Active-HIGH) -->
+              <div class="p-3 rounded-2xl bg-slate-900/40 border border-slate-800/60 flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <i data-lucide="zap" class="w-3.5 h-3.5 text-sky-400"></i>
+                    <span>Relay Hardware Mode</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-0.5 leading-snug">
+                    Drive: <span id="relayPolarityLabel-${dev.id}" class="text-sky-400 font-mono font-bold">Active-LOW</span>
+                  </p>
+                </div>
+                <div>
+                  <button onclick="toggleRelayPolarity('${dev.id}')"
+                          class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-300 border border-slate-700 text-[10px] font-bold transition">
+                    Flip Mode
+                  </button>
+                </div>
+              </div>
+
               <!-- Remote GitHub Firmware OTA Update -->
               <div id="otaBox-${dev.id}" class="p-3 rounded-2xl bg-slate-900/50 border border-slate-800/80 flex items-center justify-between mt-2">
                 <div class="flex items-center space-x-2.5 cursor-pointer" onclick="openFirmwareModal('${dev.id}')" title="Click for details & changelog">
@@ -2210,6 +2245,10 @@
       if (data.schedTime) {
         const timeInput = document.getElementById(`presetMorningTime-${devId}`);
         if (timeInput && !timeInput.matches(":focus")) timeInput.value = data.schedTime;
+      }
+      if (typeof data.activeLow !== "undefined") {
+        const lbl = document.getElementById(`relayPolarityLabel-${devId}`);
+        if (lbl) lbl.innerText = data.activeLow === 1 ? "Active-LOW" : "Active-HIGH";
       }
 
       const otaStatus = document.getElementById(`otaStatusText-${devId}`);

@@ -1,10 +1,16 @@
 {
-  "version": "2.8.0",
-  "build": 280,
-  "release_date": "2026-11-03",
+  "version": "2.8.5",
+  "build": 285,
+  "release_date": "2026-11-07",
   "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
-  "release_notes": "Major Reliability Overhaul: Persistent EEPROM presets (safety cutoff timer & morning schedule survive reboots/power outages), zero-lag tank level state telemetry, Telegram TLS reliability upgrade, and hardware startup transient protection.",
+  "release_notes": "Critical Relay Hardware Driver Fix: Switched from floating Hi-Z input to solid push-pull active-low output driver (holding 3.3V HIGH when OFF to completely extinguish optocoupler conduction), and added 1-click polarity flip support.",
   "changelog": [
+    {
+      "version": "2.8.5",
+      "build": 285,
+      "date": "2026-11-07",
+      "notes": "Solid push-pull relay driver (3.3V HIGH when OFF) to fix stuck-on relay issues on Active-LOW optocoupled modules, plus runtime polarity toggle."
+    },
     {
       "version": "2.8.0",
       "build": 280,
