@@ -1,10 +1,16 @@
 {
-  "version": "2.8.6",
-  "build": 286,
-  "release_date": "2026-11-08",
+  "version": "2.9.0",
+  "build": 290,
+  "release_date": "2026-11-15",
   "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
-  "release_notes": "Critical Relay Hardware Fix & Ultra-Reliable OTA: Solid push-pull relay driver (3.3V HIGH when OFF) preventing optocoupler current leakage, interrupt decoupling during SPI flash write, 40KB binary reduction for guaranteed 1MB ESP-01S flash fit, and cloud app offline protection.",
+  "release_notes": "Indestructible Hardware Architecture: Moved Water Tank Float Sensor to GPIO3 (zero boot limits), isolated GPIO2 to permanently eliminate SDIO boot freezes, integrated 1kΩ surge barrier & 100µF capacitor power protection.",
   "changelog": [
+    {
+      "version": "2.9.0",
+      "build": 290,
+      "date": "2026-11-15",
+      "notes": "Relocated Float Sensor to GPIO3, retired touch interrupt for 100% crash-free flash boot, and integrated surge barrier protection."
+    },
     {
       "version": "2.8.6",
       "build": 286,
