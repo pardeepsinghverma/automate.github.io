@@ -1,10 +1,16 @@
 {
-  "version": "2.9.3",
-  "build": 293,
+  "version": "2.9.4",
+  "build": 294,
   "release_date": "2026-11-15",
   "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
-  "release_notes": "Multi-Tier Watchdog & Anti-Hang Auto-Recovery: 8s hardware WDT, 25s loop freeze interrupt ticker, Wi-Fi radio recovery, 5m MQTT auto-recovery, and low heap guard.",
+  "release_notes": "Restored Canonical 3-Pin Layout & Instant Touch ISR: GPIO0 Relay, GPIO2 Float Sensor, GPIO3 Touch Switch with IRAM interrupt.",
   "changelog": [
+    {
+      "version": "2.9.4",
+      "build": 294,
+      "date": "2026-11-15",
+      "notes": "Restored Canonical 3-Pin Layout & Instant Touch ISR: GPIO0 Relay, GPIO2 Float Sensor, GPIO3 Touch Switch with IRAM interrupt."
+    },
     {
       "version": "2.9.3",
       "build": 293,
