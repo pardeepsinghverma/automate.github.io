@@ -1597,16 +1597,6 @@
         document.getElementById("mqttStatusText").innerText = "Cloud Gateway Live";
         appendLog("NETWORK", "Connected to Cloud Broker via WebSockets.", "emerald");
         subscribeToDevices();
-
-        // Push presets on connect
-        devices.forEach(dev => {
-          const p = getDevicePresets(dev.id);
-          mqttClient.publish(`smarttank/${dev.id}/cmd`, JSON.stringify({
-            schedule_on: p.morningSchedule ? 1 : 0,
-            schedule_time: p.morningTime,
-            max_runtime: p.maxRuntime
-          }));
-        });
       });
 
       mqttClient.on("reconnect", () => {
@@ -2239,6 +2229,7 @@
         if (fwBadge) fwBadge.innerText = data.fw;
       }
 
+      // Synchronize presets directly from the Chip (Single Source of Truth)
       if (data.maxRuntime) {
         const sel = document.getElementById(`presetMaxRuntime-${devId}`);
         if (sel && !sel.matches(":focus")) sel.value = String(data.maxRuntime);
@@ -2250,6 +2241,14 @@
       if (data.schedTime) {
         const timeInput = document.getElementById(`presetMorningTime-${devId}`);
         if (timeInput && !timeInput.matches(":focus")) timeInput.value = data.schedTime;
+      }
+      // Mirror confirmed chip EEPROM values to localStorage (offline cache only)
+      if (typeof data.scheduleOn !== "undefined" || data.schedTime || data.maxRuntime) {
+        const currentP = getDevicePresets(devId);
+        if (typeof data.scheduleOn !== "undefined") currentP.morningSchedule = (data.scheduleOn === 1);
+        if (data.schedTime) currentP.morningTime = data.schedTime;
+        if (data.maxRuntime) currentP.maxRuntime = data.maxRuntime;
+        localStorage.setItem(`smarttank_presets_${devId}`, JSON.stringify(currentP));
       }
       if (typeof data.activeLow !== "undefined") {
         const lbl = document.getElementById(`relayPolarityLabel-${devId}`);
