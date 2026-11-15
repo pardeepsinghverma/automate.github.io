@@ -1,10 +1,16 @@
 {
-  "version": "2.9.0",
-  "build": 290,
+  "version": "2.9.1",
+  "build": 291,
   "release_date": "2026-11-15",
   "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
-  "release_notes": "Indestructible Hardware Architecture: Moved Water Tank Float Sensor to GPIO3 (zero boot limits), isolated GPIO2 to permanently eliminate SDIO boot freezes, integrated 1kΩ surge barrier & 100µF capacitor power protection.",
+  "release_notes": "Safe Hi-Z Relay Driver Restoration: Restored high-impedance (INPUT) driver when OFF to eliminate 1.76V optocoupler leakage and ensure 100% clean relay shutoff on all Active-LOW relay modules.",
   "changelog": [
+    {
+      "version": "2.9.1",
+      "build": 291,
+      "date": "2026-11-15",
+      "notes": "Restored Safe Hi-Z relay driver: High-Impedance INPUT on OFF eliminates optocoupler leakage, solving stuck-on relay issues."
+    },
     {
       "version": "2.9.0",
       "build": 290,
