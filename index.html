@@ -1519,20 +1519,29 @@
     // Device Presets Manager
     // -------------------------------------------------------------------------
     function getDevicePresets(devId) {
-      const raw = localStorage.getItem(`smarttank_presets_${devId}`);
-      if (!raw) {
+      const state = deviceStates[devId] || {};
+      // 1. Single Source of Truth: Check live/retained state from the ESP-01S chip first!
+      if (typeof state.schedTime !== "undefined" || typeof state.scheduleOn !== "undefined") {
         return {
-          morningSchedule: false,
-          morningTime: "06:30",
-          maxRuntime: 60,
+          morningSchedule: state.scheduleOn === 1,
+          morningTime: state.schedTime || "06:30",
+          maxRuntime: state.maxRuntime || 60,
           chimeEnabled: true
         };
       }
-      try {
-        return JSON.parse(raw);
-      } catch (e) {
-        return { morningSchedule: false, morningTime: "06:30", maxRuntime: 60, chimeEnabled: true };
+      // 2. Fallback to cached local storage only before MQTT state arrives
+      const raw = localStorage.getItem(`smarttank_presets_${devId}`);
+      if (raw) {
+        try {
+          return JSON.parse(raw);
+        } catch (e) {}
       }
+      return {
+        morningSchedule: false,
+        morningTime: "06:30",
+        maxRuntime: 60,
+        chimeEnabled: true
+      };
     }
 
     function updateDevicePreset(devId) {
@@ -1540,27 +1549,37 @@
       const timeInp = document.getElementById(`presetMorningTime-${devId}`);
       const maxSelect = document.getElementById(`presetMaxRuntime-${devId}`);
 
-      const preset = {
-        morningSchedule: toggle ? toggle.checked : false,
-        morningTime: timeInp ? timeInp.value : "06:30",
-        maxRuntime: maxSelect ? parseInt(maxSelect.value, 10) : 60,
-        chimeEnabled: true
-      };
+      const sOn = toggle ? (toggle.checked ? 1 : 0) : 0;
+      const sTime = timeInp ? timeInp.value : "06:30";
+      const maxR = maxSelect ? parseInt(maxSelect.value, 10) : 60;
 
-      localStorage.setItem(`smarttank_presets_${devId}`, JSON.stringify(preset));
+      // Optimistically update memory state & local cache
+      const state = deviceStates[devId] || {};
+      state.scheduleOn = sOn;
+      state.schedTime = sTime;
+      state.maxRuntime = maxR;
+      deviceStates[devId] = state;
+
+      localStorage.setItem(`smarttank_presets_${devId}`, JSON.stringify({
+        morningSchedule: sOn === 1,
+        morningTime: sTime,
+        maxRuntime: maxR,
+        chimeEnabled: true
+      }));
+
       triggerHaptic("click");
       playBeep(720, 0.08);
 
-      // Publish preset command to ESP-01S over MQTT
+      // Publish preset command to ESP-01S chip over MQTT (Single Source of Truth)
       if (mqttClient && mqttClient.connected) {
         const cmdTopic = `smarttank/${devId}/cmd`;
         const payload = {
-          schedule_on: preset.morningSchedule ? 1 : 0,
-          schedule_time: preset.morningTime,
-          max_runtime: preset.maxRuntime
+          schedule_on: sOn,
+          schedule_time: sTime,
+          max_runtime: maxR
         };
         mqttClient.publish(cmdTopic, JSON.stringify(payload), { qos: 1 });
-        appendLog("CONFIG", `Updated presets for [${devId}]: Morning ${preset.morningTime} (${preset.morningSchedule ? "ON" : "OFF"}), Max Run ${preset.maxRuntime}m`, "emerald");
+        appendLog("CONFIG", `Synced presets to chip [${devId}]: Morning ${sTime} (${sOn ? "ON" : "OFF"}), Max Run ${maxR}m`, "emerald");
       }
     }
 
@@ -1597,16 +1616,6 @@
         document.getElementById("mqttStatusText").innerText = "Cloud Gateway Live";
         appendLog("NETWORK", "Connected to Cloud Broker via WebSockets.", "emerald");
         subscribeToDevices();
-
-        // Push presets on connect
-        devices.forEach(dev => {
-          const p = getDevicePresets(dev.id);
-          mqttClient.publish(`smarttank/${dev.id}/cmd`, JSON.stringify({
-            schedule_on: p.morningSchedule ? 1 : 0,
-            schedule_time: p.morningTime,
-            max_runtime: p.maxRuntime
-          }));
-        });
       });
 
       mqttClient.on("reconnect", () => {
@@ -2239,22 +2248,34 @@
         if (fwBadge) fwBadge.innerText = data.fw;
       }
 
-      if (data.maxRuntime) {
+      if (typeof data.maxRuntime !== "undefined") {
+        state.maxRuntime = data.maxRuntime;
         const sel = document.getElementById(`presetMaxRuntime-${devId}`);
         if (sel && !sel.matches(":focus")) sel.value = String(data.maxRuntime);
       }
       if (typeof data.scheduleOn !== "undefined") {
+        state.scheduleOn = data.scheduleOn;
         const toggle = document.getElementById(`presetMorningToggle-${devId}`);
         if (toggle) toggle.checked = (data.scheduleOn === 1);
       }
       if (data.schedTime) {
+        state.schedTime = data.schedTime;
         const timeInput = document.getElementById(`presetMorningTime-${devId}`);
         if (timeInput && !timeInput.matches(":focus")) timeInput.value = data.schedTime;
       }
       if (typeof data.activeLow !== "undefined") {
+        state.activeLow = data.activeLow;
         const lbl = document.getElementById(`relayPolarityLabel-${devId}`);
         if (lbl) lbl.innerText = data.activeLow === 1 ? "Active-LOW" : "Active-HIGH";
       }
+
+      // Sync state back to local cache so offline view is consistent with chip
+      localStorage.setItem(`smarttank_presets_${devId}`, JSON.stringify({
+        morningSchedule: state.scheduleOn === 1,
+        morningTime: state.schedTime || "06:30",
+        maxRuntime: state.maxRuntime || 60,
+        chimeEnabled: true
+      }));
 
       const otaStatus = document.getElementById(`otaStatusText-${devId}`);
       if (otaStatus && cloudReleaseInfo) {
