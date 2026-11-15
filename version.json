@@ -1,27 +1,15 @@
 {
-  "version": "2.9.4",
-  "build": 294,
+  "version": "2.9.2",
+  "build": 292,
   "release_date": "2026-11-15",
   "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
-  "release_notes": "Restored Canonical 3-Pin Layout & Instant Touch ISR: GPIO0 Relay, GPIO2 Float Sensor, GPIO3 Touch Switch with IRAM interrupt.",
+  "release_notes": "Live Status Blue LED Indicator: Mapped ESP-01S onboard Blue LED (GPIO2) to motor switch status (Glows bright blue when Motor is ON, turns completely OFF when Motor is STOPPED).",
   "changelog": [
-    {
-      "version": "2.9.4",
-      "build": 294,
-      "date": "2026-11-15",
-      "notes": "Restored Canonical 3-Pin Layout & Instant Touch ISR: GPIO0 Relay, GPIO2 Float Sensor, GPIO3 Touch Switch with IRAM interrupt."
-    },
-    {
-      "version": "2.9.3",
-      "build": 293,
-      "date": "2026-11-15",
-      "notes": "Multi-Tier Watchdog & Anti-Hang Auto-Recovery: 8s hardware WDT, 25s loop freeze interrupt ticker, Wi-Fi radio recovery, 5m MQTT auto-recovery, and low heap guard."
-    },
     {
       "version": "2.9.2",
       "build": 292,
       "date": "2026-11-15",
-      "notes": "Added Evening Water Timer (dual daily auto-start), live controller renaming across all family devices, and memory-safe 4KB TLS buffer."
+      "notes": "Enabled ESP-01S onboard Blue LED on GPIO2 to mirror motor state (Glowing Blue = ON, OFF = STOPPED)."
     },
     {
       "version": "2.9.1",
