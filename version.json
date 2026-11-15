@@ -1,10 +1,16 @@
 {
-  "version": "2.9.1",
-  "build": 291,
+  "version": "2.9.2",
+  "build": 292,
   "release_date": "2026-11-15",
   "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
-  "release_notes": "Safe Hi-Z Relay Driver Restoration: Restored high-impedance (INPUT) driver when OFF to eliminate 1.76V optocoupler leakage and ensure 100% clean relay shutoff on all Active-LOW relay modules.",
+  "release_notes": "Dual Auto-Schedules & Live Device Renaming: Dual Morning + Evening municipal water timers stored in EEPROM, live multi-device controller renaming, and 4KB BearSSL memory-safe OTA streaming.",
   "changelog": [
+    {
+      "version": "2.9.2",
+      "build": 292,
+      "date": "2026-11-15",
+      "notes": "Added Evening Water Timer (dual daily auto-start), live controller renaming across all family devices, and memory-safe 4KB TLS buffer."
+    },
     {
       "version": "2.9.1",
       "build": 291,

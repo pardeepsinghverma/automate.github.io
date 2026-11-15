@@ -1526,6 +1526,8 @@
         return {
           morningSchedule: state.scheduleOn === 1,
           morningTime: state.schedTime || "06:30",
+          eveningSchedule: state.eveOn === 1,
+          eveningTime: state.eveTime || "17:30",
           maxRuntime: state.maxRuntime || 60,
           chimeEnabled: true
         };
@@ -1540,6 +1542,8 @@
       return {
         morningSchedule: false,
         morningTime: "06:30",
+        eveningSchedule: false,
+        eveningTime: "17:30",
         maxRuntime: 60,
         chimeEnabled: true
       };
@@ -1548,22 +1552,30 @@
     function updateDevicePreset(devId) {
       const toggle = document.getElementById(`presetMorningToggle-${devId}`);
       const timeInp = document.getElementById(`presetMorningTime-${devId}`);
+      const eveToggle = document.getElementById(`presetEveningToggle-${devId}`);
+      const eveTimeInp = document.getElementById(`presetEveningTime-${devId}`);
       const maxSelect = document.getElementById(`presetMaxRuntime-${devId}`);
 
       const sOn = toggle ? (toggle.checked ? 1 : 0) : 0;
       const sTime = timeInp ? timeInp.value : "06:30";
+      const eOn = eveToggle ? (eveToggle.checked ? 1 : 0) : 0;
+      const eTime = eveTimeInp ? eveTimeInp.value : "17:30";
       const maxR = maxSelect ? parseInt(maxSelect.value, 10) : 60;
 
       // Optimistically update memory state & local cache
       const state = deviceStates[devId] || {};
       state.scheduleOn = sOn;
       state.schedTime = sTime;
+      state.eveOn = eOn;
+      state.eveTime = eTime;
       state.maxRuntime = maxR;
       deviceStates[devId] = state;
 
       localStorage.setItem(`smarttank_presets_${devId}`, JSON.stringify({
         morningSchedule: sOn === 1,
         morningTime: sTime,
+        eveningSchedule: eOn === 1,
+        eveningTime: eTime,
         maxRuntime: maxR,
         chimeEnabled: true
       }));
@@ -1577,10 +1589,12 @@
         const payload = {
           schedule_on: sOn,
           schedule_time: sTime,
+          eve_on: eOn,
+          eve_time: eTime,
           max_runtime: maxR
         };
         mqttClient.publish(cmdTopic, JSON.stringify(payload), { qos: 1 });
-        appendLog("CONFIG", `Synced presets to chip [${devId}]: Morning ${sTime} (${sOn ? "ON" : "OFF"}), Max Run ${maxR}m`, "emerald");
+        appendLog("CONFIG", `Synced presets to chip [${devId}]: Morning ${sTime} (${sOn ? "ON" : "OFF"}), Evening ${eTime} (${eOn ? "ON" : "OFF"}), Max Run ${maxR}m`, "emerald");
       }
     }
 
@@ -2115,6 +2129,31 @@
                 </div>
               </div>
 
+              <!-- Preset 1B: Evening Water Timer -->
+              <div class="p-3.5 rounded-2xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-between">
+                <div class="pr-2 flex-1">
+                  <div class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <span>🌆</span> <span>Evening Water Timer</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-0.5 leading-snug">Auto-starts motor for evening municipal supply.</p>
+                  
+                  <div class="mt-2.5 flex items-center space-x-2">
+                    <input type="time" id="presetEveningTime-${dev.id}" value="${preset.eveningTime || '17:30'}"
+                           onchange="updateDevicePreset('${dev.id}')"
+                           class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white font-mono outline-none focus:border-sky-500 font-bold">
+                    <span class="text-[10px] text-slate-400 font-medium">${t("daily")}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="presetEveningToggle-${dev.id}" ${preset.eveningSchedule ? 'checked' : ''}
+                           onchange="updateDevicePreset('${dev.id}')" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                  </label>
+                </div>
+              </div>
+
               <!-- Preset 2: Max Runtime Dry-Run Lock -->
               <div class="p-3.5 rounded-2xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-between">
                 <div class="pr-2 flex-1">
@@ -2299,6 +2338,16 @@
         const timeInput = document.getElementById(`presetMorningTime-${devId}`);
         if (timeInput && !timeInput.matches(":focus")) timeInput.value = data.schedTime;
       }
+      if (typeof data.eveOn !== "undefined") {
+        state.eveOn = data.eveOn;
+        const toggle = document.getElementById(`presetEveningToggle-${devId}`);
+        if (toggle) toggle.checked = (data.eveOn === 1);
+      }
+      if (data.eveTime) {
+        state.eveTime = data.eveTime;
+        const timeInput = document.getElementById(`presetEveningTime-${devId}`);
+        if (timeInput && !timeInput.matches(":focus")) timeInput.value = data.eveTime;
+      }
       if (typeof data.activeLow !== "undefined") {
         state.activeLow = data.activeLow;
         const lbl = document.getElementById(`relayPolarityLabel-${devId}`);
@@ -2309,6 +2358,8 @@
       localStorage.setItem(`smarttank_presets_${devId}`, JSON.stringify({
         morningSchedule: state.scheduleOn === 1,
         morningTime: state.schedTime || "06:30",
+        eveningSchedule: state.eveOn === 1,
+        eveningTime: state.eveTime || "17:30",
         maxRuntime: state.maxRuntime || 60,
         chimeEnabled: true
       }));
