@@ -692,6 +692,9 @@
         run: "Run",
         presets_title: "Smart Presets & Safety",
         active_badge: "ACTIVE",
+        chip_synced: "In Chip (EEPROM)",
+        chip_saving: "Saving to Chip...",
+        sync_chip: "Sync from Chip",
         morning_timer_title: "Morning Water Timer",
         morning_timer_desc: "Automatically turns motor ON at this time to catch municipal supply.",
         daily: "Daily",
@@ -795,6 +798,9 @@
         run: "रन",
         presets_title: "स्मार्ट टाइमर और सुरक्षा सेटिंग्स",
         active_badge: "चालू",
+        chip_synced: "चिप में सुरक्षित (EEPROM)",
+        chip_saving: "चिप में सेव हो रहा है...",
+        sync_chip: "चिप से रीफ्रेश करें",
         morning_timer_title: "सुबह का ऑटो-स्टार्ट टाइमर",
         morning_timer_desc: "सरकारी पानी आने के समय मोटर अपने आप चालू हो जाएगी।",
         daily: "रोजाना",
@@ -898,6 +904,9 @@
         run: "Run",
         presets_title: "Smart Presets & Safety",
         active_badge: "ACTIVE",
+        chip_synced: "Chip EEPROM Me Safe",
+        chip_saving: "Chip Me Save Ho Raha...",
+        sync_chip: "Chip Se Sync Karein",
         morning_timer_title: "Subah Ka Auto-Start Timer",
         morning_timer_desc: "Municipal water supply aane par motor apne aap chalu ho jayegi.",
         daily: "Daily",
@@ -1001,6 +1010,9 @@
         run: "ਰਨ",
         presets_title: "ਸਮਾਰਟ ਟਾਈਮਰ ਅਤੇ ਸੁਰੱਖਿਆ",
         active_badge: "ਚਾਲੂ",
+        chip_synced: "ਚਿੱਪ 'ਚ ਸੁਰੱਖਿਅਤ (EEPROM)",
+        chip_saving: "ਚਿੱਪ 'ਚ ਸੇਵ ਹੋ ਰਿਹਾ...",
+        sync_chip: "ਚਿੱਪ ਤੋਂ ਸਿੰਕ ਕਰੋ",
         morning_timer_title: "ਸਵੇਰ ਦਾ ਆਟੋ-ਸਟਾਰਟ ਟਾਈਮਰ",
         morning_timer_desc: "ਸਰਕਾਰੀ ਪਾਣੀ ਆਉਣ 'ਤੇ ਮੋਟਰ ਆਪਣੇ ਆਪ ਚਾਲੂ ਹੋ ਜਾਵੇਗੀ।",
         daily: "ਰੋਜ਼ਾਨਾ",
@@ -1516,22 +1528,42 @@
     });
 
     // -------------------------------------------------------------------------
-    // Device Presets Manager
+    // Device Presets Manager (Authoritative Source of Truth: ESP-01 EEPROM)
     // -------------------------------------------------------------------------
     function getDevicePresets(devId) {
+      const chipState = deviceStates[devId];
       const raw = localStorage.getItem(`smarttank_presets_${devId}`);
-      if (!raw) {
-        return {
-          morningSchedule: false,
-          morningTime: "06:30",
-          maxRuntime: 60,
-          chimeEnabled: true
-        };
+      let cached = {};
+      if (raw) {
+        try { cached = JSON.parse(raw); } catch (e) {}
       }
-      try {
-        return JSON.parse(raw);
-      } catch (e) {
-        return { morningSchedule: false, morningTime: "06:30", maxRuntime: 60, chimeEnabled: true };
+
+      // Prioritize direct state fetched from ESP-01 EEPROM
+      return {
+        morningSchedule: (chipState && typeof chipState.scheduleOn !== "undefined")
+          ? (chipState.scheduleOn === 1)
+          : (typeof cached.morningSchedule !== "undefined" ? cached.morningSchedule : false),
+        morningTime: (chipState && chipState.schedTime)
+          ? chipState.schedTime
+          : (cached.morningTime || "06:30"),
+        maxRuntime: (chipState && chipState.maxRuntime)
+          ? chipState.maxRuntime
+          : (cached.maxRuntime || 60),
+        chimeEnabled: true
+      };
+    }
+
+    function syncPresetsFromChip(devId) {
+      if (mqttClient && mqttClient.connected) {
+        const badge = document.getElementById(`schedSourceBadge-${devId}`);
+        if (badge) {
+          badge.innerText = "Syncing...";
+          badge.className = "text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-sky-500/15 text-sky-400 border border-sky-500/20 animate-pulse";
+        }
+        mqttClient.publish(`smarttank/${devId}/cmd`, JSON.stringify({ cmd: "sync" }), { qos: 1 });
+        appendLog("SYNC", `Fetching authoritative settings from Chip [${devId}] EEPROM...`, "sky");
+        triggerHaptic("click");
+        playBeep(800, 0.08);
       }
     }
 
@@ -1539,6 +1571,7 @@
       const toggle = document.getElementById(`presetMorningToggle-${devId}`);
       const timeInp = document.getElementById(`presetMorningTime-${devId}`);
       const maxSelect = document.getElementById(`presetMaxRuntime-${devId}`);
+      const badge = document.getElementById(`schedSourceBadge-${devId}`);
 
       const preset = {
         morningSchedule: toggle ? toggle.checked : false,
@@ -1547,11 +1580,22 @@
         chimeEnabled: true
       };
 
+      if (badge) {
+        badge.innerText = t("chip_saving");
+        badge.className = "text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20 animate-pulse";
+      }
+
+      // Update local memory
+      if (!deviceStates[devId]) deviceStates[devId] = {};
+      deviceStates[devId].scheduleOn = preset.morningSchedule ? 1 : 0;
+      deviceStates[devId].schedTime = preset.morningTime;
+      deviceStates[devId].maxRuntime = preset.maxRuntime;
       localStorage.setItem(`smarttank_presets_${devId}`, JSON.stringify(preset));
+
       triggerHaptic("click");
       playBeep(720, 0.08);
 
-      // Publish preset command to ESP-01S over MQTT
+      // Publish preset command to ESP-01S to commit directly to EEPROM
       if (mqttClient && mqttClient.connected) {
         const cmdTopic = `smarttank/${devId}/cmd`;
         const payload = {
@@ -1560,7 +1604,7 @@
           max_runtime: preset.maxRuntime
         };
         mqttClient.publish(cmdTopic, JSON.stringify(payload), { qos: 1 });
-        appendLog("CONFIG", `Updated presets for [${devId}]: Morning ${preset.morningTime} (${preset.morningSchedule ? "ON" : "OFF"}), Max Run ${preset.maxRuntime}m`, "emerald");
+        appendLog("CONFIG", `Saving to Chip EEPROM [${devId}]: Morning ${preset.morningTime} (${preset.morningSchedule ? "ON" : "OFF"}), Max Run ${preset.maxRuntime}m`, "emerald");
       }
     }
 
@@ -1627,6 +1671,8 @@
         mqttClient.subscribe(`smarttank/${dev.id}/alert`);
         mqttClient.subscribe(`smarttank/${dev.id}/log`);
         mqttClient.subscribe(`smarttank/${dev.id}/history`);
+        // Request immediate state sync from chip EEPROM
+        mqttClient.publish(`smarttank/${dev.id}/cmd`, JSON.stringify({ cmd: "sync" }), { qos: 1 });
       });
       refreshHistoryFromDevice();
     }
@@ -2047,11 +2093,12 @@
 
             <div class="space-y-2.5">
               
-              <!-- Preset 1: Morning Water Timer -->
+              <!-- Preset 1: Morning Water Timer (Authoritative in ESP-01 EEPROM) -->
               <div class="p-3.5 rounded-2xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-between">
                 <div class="pr-2 flex-1">
                   <div class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
                     <span>⏰</span> <span>${t("morning_timer_title")}</span>
+                    <span id="schedSourceBadge-${dev.id}" class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">${t("chip_synced")}</span>
                   </div>
                   <p class="text-[10px] text-slate-400 mt-0.5 leading-snug">${t("morning_timer_desc")}</p>
                   
@@ -2060,6 +2107,10 @@
                            onchange="updateDevicePreset('${dev.id}')"
                            class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white font-mono outline-none focus:border-sky-500 font-bold">
                     <span class="text-[10px] text-slate-400 font-medium">${t("daily")}</span>
+                    <button type="button" onclick="syncPresetsFromChip('${dev.id}')" title="${t('sync_chip')}"
+                            class="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-sky-400 border border-slate-700 transition">
+                      <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                    </button>
                   </div>
                 </div>
 
@@ -2230,6 +2281,12 @@
       }
 
       // Synchronize presets directly from the Chip (Single Source of Truth)
+      const badge = document.getElementById(`schedSourceBadge-${devId}`);
+      if (badge) {
+        badge.innerText = t("chip_synced");
+        badge.className = "text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20";
+      }
+
       if (data.maxRuntime) {
         const sel = document.getElementById(`presetMaxRuntime-${devId}`);
         if (sel && !sel.matches(":focus")) sel.value = String(data.maxRuntime);

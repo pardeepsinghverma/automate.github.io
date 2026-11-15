@@ -1,10 +1,16 @@
 {
-  "version": "2.9.2",
-  "build": 292,
+  "version": "2.9.3",
+  "build": 293,
   "release_date": "2026-11-15",
   "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
-  "release_notes": "Live Status Blue LED Indicator: Mapped ESP-01S onboard Blue LED (GPIO2) to motor switch status (Glows bright blue when Motor is ON, turns completely OFF when Motor is STOPPED).",
+  "release_notes": "Authoritative EEPROM Source of Truth: Morning auto-time schedule and safety presets saved directly in ESP-01 EEPROM with instant sync ('cmd': 'sync') and authoritative multi-client broadcast.",
   "changelog": [
+    {
+      "version": "2.9.3",
+      "build": 293,
+      "date": "2026-11-15",
+      "notes": "Morning auto-time schedule and safety presets strictly saved in ESP-01 EEPROM as Single Source of Truth; multi-user clients fetch directly from chip with real-time sync acknowledgement."
+    },
     {
       "version": "2.9.2",
       "build": 292,
