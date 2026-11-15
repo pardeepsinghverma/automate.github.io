@@ -747,7 +747,8 @@
         reason_tank_full: "Tank Full (Auto-Cut)",
         reason_safety: "Safety Limit (Auto-Cut)",
         reason_stopped: "Stopped Manually",
-        ran_for: "Ran for"
+        ran_for: "Ran for",
+        rename_prompt: "Enter custom name for this controller (e.g. Upstairs Tank, Borewell):"
       },
       hi: {
         label: "हिंदी",
@@ -1599,6 +1600,26 @@
       playBeep(750, 0.1);
     }
 
+    function promptRenameDevice(devId) {
+      const devObj = devices.find(d => d.id === devId);
+      const current = devObj ? devObj.name : "Roof Tank Motor";
+      const newName = prompt(t("rename_prompt") || "Enter custom name for this controller (e.g. Upstairs Tank, Borewell):", current);
+      if (newName && newName.trim().length > 0 && newName.trim() !== current) {
+        const cleanName = newName.trim().substring(0, 30);
+        if (devObj) devObj.name = cleanName;
+        saveDevices();
+        const titleEl = document.getElementById(`devTitle-${devId}`);
+        if (titleEl) titleEl.innerText = cleanName;
+
+        // Push name to chip over MQTT (Single Source of Truth)
+        if (mqttClient && mqttClient.connected) {
+          mqttClient.publish(`smarttank/${devId}/cmd`, JSON.stringify({ name: cleanName }), { qos: 1 });
+          appendLog("CONFIG", `Renamed [${devId}] to "${cleanName}" across all devices.`, "emerald");
+        }
+        triggerHaptic("click");
+      }
+    }
+
     // -------------------------------------------------------------------------
     // MQTT Engine (WebSockets + Sub-30ms Fast Path)
     // -------------------------------------------------------------------------
@@ -1993,8 +2014,11 @@
           <!-- Card Header -->
           <div class="flex items-center justify-between mb-4 mt-1">
             <div>
-              <div class="flex items-center space-x-2">
-                <h2 class="text-base font-extrabold text-white tracking-tight">${dev.name}</h2>
+              <div class="flex items-center space-x-1.5">
+                <h2 id="devTitle-${dev.id}" class="text-base font-extrabold text-white tracking-tight">${dev.name}</h2>
+                <button onclick="promptRenameDevice('${dev.id}')" class="text-slate-400 hover:text-sky-400 p-1 transition rounded-lg hover:bg-slate-800/80 active:scale-95" title="Rename Controller">
+                  <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                </button>
                 <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 uppercase">${dev.id}</span>
               </div>
               <p class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5" id="subtext-${dev.id}">
@@ -2183,6 +2207,18 @@
 
     // Fast Dynamic DOM Updater (Zero Thrashing)
     function updateDeviceStateDOM(devId, data) {
+      if (data.name) {
+        const titleEl = document.getElementById(`devTitle-${devId}`);
+        if (titleEl && titleEl.innerText !== data.name) {
+          titleEl.innerText = data.name;
+        }
+        const devObj = devices.find(d => d.id === devId);
+        if (devObj && devObj.name !== data.name) {
+          devObj.name = data.name;
+          saveDevices();
+        }
+      }
+
       const isRunning = data.relay === 1;
       const isFull = data.tankFull === 1;
 
