@@ -236,12 +236,12 @@
       </div>
 
       <!-- Weekly Stats Grid -->
-      <div class="grid grid-cols-3 gap-2">
+      <div class="grid grid-cols-2 gap-2">
         <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
           <div class="text-[9px] uppercase tracking-wider font-bold text-slate-400" data-i18n="stat_runtime">This Week</div>
           <div class="text-xs font-black text-white mt-0.5" id="statWeeklyRuntime">0 min</div>
         </div>
-        <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
+        <div class="hidden p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
           <div class="text-[9px] uppercase tracking-wider font-bold text-slate-400" data-i18n="stat_water">Water Filled</div>
           <div class="text-xs font-black text-sky-400 mt-0.5" id="statWeeklyWater">~0 L</div>
         </div>
@@ -2178,8 +2178,8 @@
                 </div>
               </div>
 
-              <!-- Remote GitHub Firmware OTA Update -->
-              <div id="otaBox-${dev.id}" class="p-3 rounded-2xl bg-slate-900/50 border border-slate-800/80 flex items-center justify-between mt-2">
+              <!-- Remote GitHub Firmware OTA Update (Hidden from Customer Dashboard) -->
+              <div id="otaBox-${dev.id}" class="hidden p-3 rounded-2xl bg-slate-900/50 border border-slate-800/80 items-center justify-between mt-2">
                 <div class="flex items-center space-x-2.5 cursor-pointer" onclick="openFirmwareModal('${dev.id}')" title="Click for details & changelog">
                   <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
                     <i data-lucide="cpu" class="w-4 h-4"></i>
