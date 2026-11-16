@@ -1,10 +1,16 @@
 {
-  "version": "2.9.4",
-  "build": 294,
+  "version": "2.9.5",
+  "build": 295,
   "release_date": "2026-11-16",
   "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
-  "release_notes": "Automatic 5-Minute Warning Auto-Clear & Lockout Release: Clears Tank Full alert 5 minutes after auto-cut for 2-wire conductive probe configurations, adds 'reset_tank' MQTT command, and unlocks manual motor start.",
+  "release_notes": "Motor-Only Auto-Cut Architecture: Water full detection triggers only while motor is actively pumping; prevents floating/disconnected sensor wire from latched false Tank Full alerts when motor is OFF.",
   "changelog": [
+    {
+      "version": "2.9.5",
+      "build": 295,
+      "date": "2026-11-16",
+      "notes": "Motor-only water sensor detection: sensor only triggers auto-cut while motor is running; 5-min auto reset, reset_tank command, and instant manual start override."
+    },
     {
       "version": "2.9.4",
       "build": 294,
