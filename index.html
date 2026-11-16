@@ -2317,11 +2317,11 @@
             tankIndicator.innerText = t("badge_full");
           }
         } else {
-          // Either sensor is normal, or user dismissed it
+          // Normal water level
           if (countdownEl) countdownEl.classList.add("hidden");
           if (resetBtn) resetBtn.classList.add("hidden");
           tankText.className = "text-sm font-bold text-slate-200";
-          tankText.innerText = isDismissed ? (t("tank_normal") + " (Cleared)") : t("tank_normal");
+          tankText.innerText = t("tank_normal");
           tankWrap.className = "w-10 h-10 rounded-xl flex items-center justify-center transition bg-slate-800 text-slate-400";
           tankIndicator.className = "text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 border border-slate-700";
           tankIndicator.innerText = t("badge_normal");
