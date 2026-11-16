@@ -1394,6 +1394,7 @@
     let devices = JSON.parse(localStorage.getItem("smarttank_devices") || "[]");
     let deviceStates = {};
     let tankFullTimestamps = {};
+    let tankFullDismissed = {};
     let soundEnabled = true;
     let logCounter = 0;
 
@@ -1710,8 +1711,9 @@
           playBeep(980, 0.1);
         }
 
-        // Pleasant Tank-Full Chime when state changes from normal to 100% full
-        if (!wasFull && data.tankFull === 1) {
+        // Pleasant Tank-Full Chime when state changes from normal to 100% full (only if not dismissed)
+        const isDismissed = (tankFullDismissed[devId] === true) || (localStorage.getItem(`smarttank_dismissed_${devId}`) === 'true');
+        if (!wasFull && data.tankFull === 1 && !isDismissed) {
           triggerHaptic("start");
           playBeep(880, 0.25, "triangle");
           setTimeout(() => playBeep(1174, 0.35, "sine"), 200);
@@ -2272,9 +2274,16 @@
 
       const countdownEl = document.getElementById(`tankAutoResetCountdown-${devId}`);
       const resetBtn = document.getElementById(`btnResetTank-${devId}`);
+      const isDismissed = (tankFullDismissed[devId] === true) || (localStorage.getItem(`smarttank_dismissed_${devId}`) === 'true');
+
+      if (isRunning) {
+        // Reset dismiss flag when motor is running (so next tank-full auto-cut will alert properly)
+        tankFullDismissed[devId] = false;
+        localStorage.removeItem(`smarttank_dismissed_${devId}`);
+      }
 
       if (tankText && tankIndicator && tankWrap) {
-        if (isFull) {
+        if (isFull && !isDismissed) {
           if (!tankFullTimestamps[devId]) {
             tankFullTimestamps[devId] = Date.now();
           }
@@ -2282,9 +2291,9 @@
           const remainingMs = (5 * 60 * 1000) - elapsed;
 
           if (remainingMs <= 0) {
-            // 5 minutes have elapsed! Auto-clear warning on client
-            data.tankFull = 0;
-            if (deviceStates[devId]) deviceStates[devId].tankFull = 0;
+            // 5 minutes elapsed: Permanently dismiss until next motor run
+            tankFullDismissed[devId] = true;
+            localStorage.setItem(`smarttank_dismissed_${devId}`, 'true');
             tankFullTimestamps[devId] = 0;
             tankText.className = "text-sm font-bold text-slate-200";
             tankText.innerText = t("tank_normal") + " (Auto-cleared)";
@@ -2308,11 +2317,11 @@
             tankIndicator.innerText = t("badge_full");
           }
         } else {
-          tankFullTimestamps[devId] = 0;
+          // Either sensor is normal, or user dismissed it
           if (countdownEl) countdownEl.classList.add("hidden");
           if (resetBtn) resetBtn.classList.add("hidden");
           tankText.className = "text-sm font-bold text-slate-200";
-          tankText.innerText = t("tank_normal");
+          tankText.innerText = isDismissed ? (t("tank_normal") + " (Cleared)") : t("tank_normal");
           tankWrap.className = "w-10 h-10 rounded-xl flex items-center justify-center transition bg-slate-800 text-slate-400";
           tankIndicator.className = "text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 border border-slate-700";
           tankIndicator.innerText = t("badge_normal");
@@ -2425,14 +2434,16 @@
     function manualResetTank(devId) {
       triggerHaptic("start");
       playBeep(640, 0.1);
+      tankFullDismissed[devId] = true;
+      localStorage.setItem(`smarttank_dismissed_${devId}`, 'true');
+      tankFullTimestamps[devId] = 0;
       if (deviceStates[devId]) {
         deviceStates[devId].tankFull = 0;
-        tankFullTimestamps[devId] = 0;
-        updateDeviceStateDOM(devId, deviceStates[devId]);
       }
+      updateDeviceStateDOM(devId, deviceStates[devId] || {});
       if (mqttClient && mqttClient.connected) {
         mqttClient.publish(`smarttank/${devId}/cmd`, JSON.stringify({ cmd: "reset_tank" }), { qos: 1 });
-        appendLog("RESET", `[${devId}] Sent reset_tank command to clear warning.`, "sky");
+        appendLog("RESET", `[${devId}] Warning cleared & permanently dismissed.`, "sky");
       }
       // Also notify local controller if on same network
       fetch(`http://192.168.1.81/api/reset_tank`, { mode: 'no-cors' }).catch(() => {});
@@ -2447,14 +2458,18 @@
       const targetRelay = currentRelay === 1 ? 0 : 1;
 
       // Auto-release tank full lock on manual motor start
-      if (targetRelay === 1 && state.tankFull === 1) {
-        state.tankFull = 0;
-        tankFullTimestamps[devId] = 0;
-        updateDeviceStateDOM(devId, state);
-        if (mqttClient && mqttClient.connected) {
-          mqttClient.publish(`smarttank/${devId}/cmd`, JSON.stringify({ cmd: "reset_tank" }), { qos: 1 });
+      if (targetRelay === 1) {
+        tankFullDismissed[devId] = true;
+        localStorage.removeItem(`smarttank_dismissed_${devId}`);
+        if (state.tankFull === 1) {
+          state.tankFull = 0;
+          tankFullTimestamps[devId] = 0;
+          updateDeviceStateDOM(devId, state);
+          if (mqttClient && mqttClient.connected) {
+            mqttClient.publish(`smarttank/${devId}/cmd`, JSON.stringify({ cmd: "reset_tank" }), { qos: 1 });
+          }
+          appendLog("START", `[${devId}] Starting motor (overriding previous tank-full latch).`, "sky");
         }
-        appendLog("START", `[${devId}] Starting motor (overriding previous tank-full latch).`, "sky");
       }
 
       // Native Android tactile pulse
