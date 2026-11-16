@@ -2460,7 +2460,7 @@
       // Auto-release tank full lock on manual motor start
       if (targetRelay === 1) {
         tankFullDismissed[devId] = true;
-        localStorage.removeItem(`smarttank_dismissed_${devId}`);
+        localStorage.setItem(`smarttank_dismissed_${devId}`, 'true');
         if (state.tankFull === 1) {
           state.tankFull = 0;
           tankFullTimestamps[devId] = 0;
