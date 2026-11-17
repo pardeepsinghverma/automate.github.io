@@ -1,10 +1,16 @@
 {
-  "version": "2.9.5",
-  "build": 295,
-  "release_date": "2026-11-16",
+  "version": "2.9.6",
+  "build": 296,
+  "release_date": "2026-11-17",
   "url": "https://pardeepsinghverma.github.io/automate.github.io/firmware.bin",
-  "release_notes": "Motor-Only Auto-Cut Architecture: Water full detection triggers only while motor is actively pumping; prevents floating/disconnected sensor wire from latched false Tank Full alerts when motor is OFF.",
+  "release_notes": "Anti-Premature Cutoff & Auto-Cut Toggle: Added selectable Auto-Cut toggle (bypass wet sensor wires) and 60-second pump grace period for wet/conductive probe wires.",
   "changelog": [
+    {
+      "version": "2.9.6",
+      "build": 296,
+      "date": "2026-11-17",
+      "notes": "Anti-premature cutoff with 60s minimum pump grace period for wet probe wires; selectable Auto-Cut ON/OFF toggle in dashboard with EEPROM persistence; live raw probe telemetry."
+    },
     {
       "version": "2.9.5",
       "build": 295,
